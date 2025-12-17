@@ -1,0 +1,16 @@
+Register
+POST http://localhost:5000/api/auth/register
+
+Body:
+{
+  "username": "john",
+  "email": "john@example.com",
+  "password": "123456"
+}
+
+
+---
+
+
+Login
+POST http://localhost:5000/api/auth/login
