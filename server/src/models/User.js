@@ -17,6 +17,18 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    rank: {
+      type: String,
+      default: "Beginner",
+    },
+    totalWins: {
+      type: Number,
+      default: 0,
+    },
+    totalBattles: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true }
 );

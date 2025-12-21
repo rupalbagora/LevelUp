@@ -1,0 +1,16 @@
+Create Battle
+
+POST /api/battle/create
+Authorization: Bearer <TOKEN>
+
+{
+  "topic": "Arrays",
+  "difficulty": "Medium"
+}
+
+-----
+
+Join Battle
+
+POST /api/battle/join/:battleId
+Authorization: Bearer <TOKEN>
