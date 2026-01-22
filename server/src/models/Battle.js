@@ -25,16 +25,26 @@ const battleSchema = new mongoose.Schema(
       ref: "User",
       default: null,
     },
+    questionId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Question",
+    },
 
     status: {
       type: String,
       enum: ["waiting", "ongoing", "completed"],
       default: "waiting",
     },
+    completedAt: {
+      type: Date,
+      default: null,
+    },
 
     startTime: Date,
     endTime: Date,
+    extendedEndTime: Date,
+    firstSubmissionTime: Date,
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 export default mongoose.model("Battle", battleSchema);

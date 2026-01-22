@@ -1,0 +1,154 @@
+
+endpoint - POST http://localhost:5000/api/battle/<battleId>/submit
+
+-------
+STEP 1: MAKE SURE SERVER IS RUNNING
+
+In your server root folder, run:
+
+node server.js
+
+
+or
+
+nodemon server.js
+
+
+You should see:
+
+MongoDB connected
+Server running on port 5000
+
+
+If server isn’t running → API won’t work ❌
+
+✅ STEP 2: GET A VALID JWT TOKEN (VERY IMPORTANT)
+
+This API is protected, so you need a token.
+
+Login API
+POST /api/auth/login
+
+Body (JSON)
+{
+  "email": "test@gmail.com",
+  "password": "123456"
+}
+
+Response
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+
+
+👉 Copy this token (you’ll need it)
+
+✅ STEP 3: GET A VALID BATTLE ID
+
+You must have a battle already created.
+
+Create Battle API
+POST /api/battle/create
+
+Headers
+Authorization: Bearer <TOKEN>
+
+Body
+{
+  "topic": "Arrays",
+  "difficulty": "Easy"
+}
+
+Response
+{
+  "message": "Battle created",
+  "battleId": "69498b0d345126f6eef4d51f"
+}
+
+
+👉 Copy battleId
+
+✅ STEP 4: JOIN THE BATTLE (SECOND USER)
+
+Login as another user, get token, then:
+
+POST /api/battle/join/<battleId>
+
+Headers
+Authorization: Bearer <OPPONENT_TOKEN>
+
+
+This starts the timer and assigns a question.
+
+✅ STEP 5: TEST SUBMIT CODE API (MAIN PART)
+Request
+POST http://localhost:5000/api/submission/<battleId>/submit
+
+Headers
+Authorization: Bearer <TOKEN>
+Content-Type: application/json
+
+Body (JSON)
+{
+  "code": "function solve() { return 42; }"
+}
+
+✅ EXPECTED RESPONSE (FIRST SUBMISSION)
+{
+  "message": "Code submitted successfully",
+  "submissionId": "65ab1234cdef",
+  "extendedEndTime": "2025-01-25T12:42:00.000Z"
+}
+
+
+✔ Means:
+
+Submission stored
+
+2-minute extension triggered
+
+✅ STEP 6: TEST SECOND SUBMISSION (OTHER USER)
+
+Repeat Step 5 with opponent token.
+
+✔ Should succeed within 2 minutes
+❌ Should fail after 2 minutes
+
+❌ COMMON ERROR RESPONSES (AND WHAT THEY MEAN)
+❌ No token
+401 Unauthorized
+
+
+➡ Forgot Authorization header
+
+❌ Battle time over
+{
+  "message": "Battle time over"
+}
+
+
+➡ Timer expired (correct behavior)
+
+❌ Not part of battle
+{
+  "message": "You are not part of this battle"
+}
+
+STEP 7: VERIFY SUBMISSION IN DATABASE
+MongoDB Compass
+
+Database: levelup
+
+Collection: submissions
+
+You should see:
+
+{
+  "battleId": "...",
+  "userId": "...",
+  "code": "function solve() { ... }",
+  "submittedAt": "..."
+}
+
+
+✔ Confirms API works end-to-end

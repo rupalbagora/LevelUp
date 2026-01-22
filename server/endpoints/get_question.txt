@@ -1,0 +1,12 @@
+Method: GET
+URL:
+
+http://localhost:5000/api/battle/69498b0d345126f6eef4d51f/question
+
+
+Headers:
+
+Authorization: Bearer <YOUR_JWT_TOKEN>
+
+
+Without token → middleware blocks request silently.

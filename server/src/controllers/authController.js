@@ -11,6 +11,10 @@ export const registerUser = async(req,res)=>{
     if(userExists){
       return res.status(400).json({message:"User already exists"});
     }
+    if (!username || !email || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
     console.log(username,email,password)
     const hashedPassword = await bcrypt.hash(password,10);
     const user = await User.create({
