@@ -1,0 +1,312 @@
+ROOT LEVEL
+public/
+
+👉 Static files that don’t go through React build.
+
+favicon.ico, logo.png
+
+Browser tab icon
+
+Branding
+
+sounds/
+
+Used during battles for game feel
+
+battle-start.mp3 → when battle begins
+
+victory.mp3 → winner announcement
+
+ko.mp3 → knockout / defeat moment
+
+🎮 Used inside gamification components
+
+animations/
+
+Lottie animation JSON files
+
+loading.json → loader
+
+victory.json → winner screen
+
+🟢 src/ (MAIN APP)
+🔹 Entry Files
+main.jsx
+
+React entry point
+
+Mounts <App />
+
+Wraps providers (Context)
+
+App.jsx
+
+Root component
+
+Loads routes
+
+Global layouts
+
+index.css
+
+Global styles
+
+Tailwind base styles
+
+🔹 assets/
+
+👉 Static assets imported into components
+
+images/
+
+App branding
+
+Battle backgrounds
+
+Rank badges shown in:
+
+Profile
+
+Leaderboard
+
+Results screen
+
+icons/
+
+Small UI icons
+
+Hint button
+
+Timer display
+
+Trophy / win icon
+
+🔹 components/ (REUSABLE UI)
+
+These are building blocks, not pages.
+
+🧩 common/
+
+Used everywhere
+
+Component	Used For
+Button	Click actions
+Input	Forms
+Card	Containers (dashboard, stats)
+Modal	Popups (confirm, hint)
+Loader	Loading states
+Badge	Rank, achievements
+Avatar	User profile image
+Tooltip	Hover info
+ProgressBar	Timers, progress
+🧱 layout/
+
+App structure & navigation
+
+Component	Purpose
+Navbar	Top navigation
+Footer	Footer info
+Sidebar	Dashboard navigation
+DashboardLayout	Wraps dashboard pages
+🔐 auth/
+
+Authentication-related UI
+
+Component	Purpose
+LoginForm	Login UI
+RegisterForm	Signup UI
+ForgotPassword	Password recovery (future)
+ProtectedRoute	Blocks access without login
+
+Used inside routes
+
+⚔️ battle/
+
+Everything related to battle flow
+
+Component	Used For
+BattleCard	Show battle info
+TopicSelector	Select DSA topic
+DifficultySelector	Easy/Medium/Hard
+BattleLinkShare	Share battle link
+WaitingRoom	Waiting for opponent
+BattleTimer	Countdown timer
+OpponentStatus	Online / submitted
+ProblemStatement	Question display
+TestCaseViewer	Sample I/O
+BattleControls	Start / leave / submit
+
+Used mainly inside:
+
+BattleSetup
+
+BattleArena
+
+🧠 editor/
+
+Coding experience
+
+Component	Purpose
+MonacoCodeEditor	Main editor
+LanguageSelector	JS / Python / C++
+ThemeSelector	Dark / light
+CodeSubmitButton	Submit code
+EditorToolbar	Run, reset, hints
+
+Used only in BattleArena
+
+🎮 gamification/
+
+Game effects & rewards
+
+Component	Purpose
+VictoryAnimation	Winner screen
+DefeatAnimation	Loser screen
+BattleStartAnimation	Start countdown
+KOAnimation	Knockout effect
+BadgeDisplay	Earned badges
+RankCard	User rank display
+LifelinesDisplay	AI hints / time
+ConfettiEffect	Celebration
+
+Triggered during:
+
+Battle start
+
+Battle end
+
+🏆 leaderboard/
+
+Ranking UI
+
+Component	Purpose
+LeaderboardTable	Full leaderboard
+LeaderboardCard	User summary
+RankingRow	One user row
+FilterTabs	Daily / weekly / all-time
+
+Used in:
+
+Leaderboard.jsx
+
+📊 analytics/
+
+Post-battle insights
+
+Component	Purpose
+PerformanceChart	Speed graph
+StatsCard	Stats summary
+ProgressChart	Skill growth
+StrengthWeaknessCard	Analysis
+BattleHistoryTable	Past battles
+
+Used in:
+
+Analytics.jsx
+
+🤖 hints/
+
+AI help system
+
+Component	Purpose
+HintButton	Request hint
+HintModal	Show hint
+QuickHint	One-line hint
+DetailedHint	Code-aware hint
+HintCounter	Remaining hints
+
+Used inside:
+
+BattleArena
+
+🚨 anti-cheat/
+
+Fair play enforcement
+
+Component	Purpose
+FullscreenEnforcer	Force fullscreen
+TabSwitchDetector	Detect tab change
+ViolationWarning	Warn user
+BlackCardNotification	Ban notice
+
+Runs during battle only
+
+🔹 pages/ (FULL SCREENS)
+
+Each page = route
+
+Page	Purpose
+Home	Landing page
+Login	Login screen
+Register	Signup
+Dashboard	User home
+Profile	User stats
+BattleSetup	Select topic/difficulty
+BattleArena	Main battle
+BattleResults	Winner/loser screen
+Leaderboard	Rankings
+Analytics	Performance dashboard
+BattleHistory	Past battles
+Settings	Preferences
+NotFound	404
+🔹 hooks/
+
+Reusable logic
+
+Hook	Purpose
+useAuth	Login/logout logic
+useBattle	Battle state
+useTimer	Countdown logic
+useCodeEditor	Editor state
+useAntiCheat	Cheat detection
+useWebSocket	Real-time updates
+useLocalStorage	Persistent data
+useDebounce	Optimize inputs
+🔹 context/
+
+Global state
+
+Context	Stores
+AuthContext	User + token
+BattleContext	Current battle
+ThemeContext	UI theme
+NotificationContext	Toasts
+🔹 services/
+
+Frontend → Backend bridge
+
+Service	Backend API
+authService	/api/auth
+battleService	/api/battle
+submissionService	/submit
+leaderboardService	/leaderboard
+analyticsService	/analytics
+hintService	/hint
+mockExecutor	Fake execution (dev)
+🔹 utils/
+
+Helper logic
+
+File	Purpose
+helpers	Common functions
+validators	Form validation
+formatters	Date, numbers
+constants	Topics, difficulty
+complexityAnalyzer	Client hints
+localStorage	Token storage
+🔹 styles/
+
+Extra styling
+
+File	Purpose
+animations.css	Battle animations
+monaco-theme.css	Editor theme
+custom.css	Overrides
+🔹 routes/
+index.jsx
+
+React Router setup
+
+Maps pages to URLs
+
+Applies ProtectedRoute
