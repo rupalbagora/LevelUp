@@ -1,9 +1,16 @@
 import React from 'react'
-
+import Navbar from './components/layout/Navbar';
+import Home from './components/Home/Home';
+import {Routes,Route} from "react-router-dom"
+import Auth from './components/auth/Auth';
 const App = () => {
   return (
     <div>
-      <h1 class="text-3xl font-bold underline">Hello world!</h1>
+      <Routes>
+        <Route path='/' element={<Home/>}/>
+        <Route path='/auth/signin' element={<Auth/>}/>
+    
+      </Routes>
     </div>
   );
 }
