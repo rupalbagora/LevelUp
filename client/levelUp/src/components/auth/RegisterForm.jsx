@@ -1,31 +1,20 @@
 const RegisterForm = () => {
   return (
-    <form className="space-y-4">
-      <input
-        type="text"
-        placeholder="Username"
-        className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
-      />
+    <div className="bg-white p-4 border border-gray-100 rounded-md shadow-md">
+      <form className="space-y-4">
+        <label for="">Username</label>
+        <input type="text" placeholder="Username" className="input_box" />
+<label for="">Email</label>
+        <input type="email" placeholder="Email" className="input_box" />
+<label for="">Password</label>
+        <input type="password" placeholder="Password" className="input_box" />
+{/* <label for="">Choose Your Avatar</label> */}
 
-      <input
-        type="email"
-        placeholder="Email"
-        className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
-      />
-
-      <input
-        type="password"
-        placeholder="Password"
-        className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
-      />
-
-      <button
-        type="submit"
-        className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
-      >
-        Sign Up
-      </button>
-    </form>
+        <button type="submit" className="btn">
+         Create Account
+        </button>
+      </form>
+    </div>
   );
 };
 export default RegisterForm;

@@ -21,7 +21,7 @@ const Navbar = () => {
         {!isLoggedIn ? (
           // Not Logged In
 
-          <Link to="/auth/signin" className="px-4 py-2 text-sm sm:text-base text-blue-600 font-semibold rounded-md hover:bg-blue-50 hover:text-blue-800 transition">
+          <Link to="/signin" className="px-4 py-2 text-sm sm:text-base text-blue-600 font-semibold rounded-md hover:bg-blue-50 hover:text-blue-800 transition">
             Sign In
           </Link>
         ) : (
