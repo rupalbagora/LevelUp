@@ -1,1 +1,76 @@
 @import "tailwindcss";
+
+/* Dark mode support */
+@variant dark (&:where(.dark, .dark *));
+
+/* Optional custom theme */
+@theme {
+  --primary: #7000ff;
+  --secondary: #00d4ff;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Better rendering */
+body {
+  @apply antialiased bg-white dark:bg-[#050816] text-slate-900 dark:text-white transition-colors duration-500;
+}
+
+/* ----------------------------- */
+/* MARQUEE ANIMATION (Languages) */
+/* ----------------------------- */
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: inline-flex;
+  animation: marquee 25s linear infinite;
+}
+
+/* ----------------------------- */
+/* OPTIONAL: Glow Utility Class */
+/* ----------------------------- */
+
+.glow-purple {
+  box-shadow: 0 0 40px rgba(112, 0, 255, 0.4);
+}
+
+.glow-cyan {
+  box-shadow: 0 0 40px rgba(0, 212, 255, 0.4);
+}
+
+/* ----------------------------- */
+/* OPTIONAL: Scrollbar Styling  */
+/* ----------------------------- */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(#7000ff, #00d4ff);
+  border-radius: 999px;
+}
+
+/* ----------------------------- */
+/* Performance optimization */
+/* ----------------------------- */
+
+img {
+  user-select: none;
+  pointer-events: none;
+}

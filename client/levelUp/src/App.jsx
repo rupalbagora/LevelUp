@@ -3,6 +3,9 @@ import Navbar from './components/layout/Navbar';
 import Home from './components/Home/Home';
 import {Routes,Route} from "react-router-dom"
 import Auth from './components/auth/Auth';
+
+
+
 const App = () => {
   return (
     <div>

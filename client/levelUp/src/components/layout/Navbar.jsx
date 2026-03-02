@@ -1,51 +1,37 @@
-import React from "react";
-import { Swords } from "lucide-react";
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { Swords, Sun, Moon, Menu, X } from "lucide-react";
 import { Link } from "react-router-dom";
+
 const Navbar = () => {
-  const [isLoggedIn,setIsLoggedIn]= useState(false);
+  const [darkMode, setDarkMode] = useState(true); 
+
+  useEffect(() => {
+    if (darkMode) document.documentElement.classList.add('dark');
+    else document.documentElement.classList.remove('dark');
+  }, [darkMode]);
+
   return (
-    <nav className="w-full bg-white border-b border-blue-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-        {/* Left: Logo */}
-        <div className="flex items-center gap-2 cursor-pointer">
-          <div className="p-2 bg-blue-600 rounded-md">
-            <Swords className="text-white w-5 h-5 sm:w-6 sm:h-6" />
+    <nav className="w-full bg-white/90 dark:bg-[#060910]/90 backdrop-blur-md border-b border-slate-200 dark:border-white/5 sticky top-0 z-50 transition-all duration-300">
+      <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+        <Link to="/" className="flex items-center gap-2 group">
+          <div className="p-2.5 bg-[#7000ff] rounded-xl shadow-lg shadow-purple-500/20">
+            <Swords className="text-white w-6 h-6" />
           </div>
-          <span className="text-xl sm:text-2xl font-bold text-blue-900">
-            Level Up
+          <span className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+            Level <span className="text-[#7000ff] dark:text-transparent dark:bg-clip-text dark:bg-gradient-to-r dark:from-[#00d4ff] dark:to-blue-400">Up</span>
           </span>
-        </div>
+        </Link>
 
-        {/* Right: Auth */}
-        {!isLoggedIn ? (
-          // Not Logged In
-
-          <Link to="/auth/signin" className="px-4 py-2 text-sm sm:text-base text-blue-600 font-semibold rounded-md hover:bg-blue-50 hover:text-blue-800 transition">
-            Sign In
+        <div className="flex items-center gap-6">
+          <button onClick={() => setDarkMode(!darkMode)} className="p-2.5 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-cyan-400 hover:bg-slate-200 dark:hover:bg-white/10 transition-all">
+            {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
+          <Link to="/auth/signup" className="hidden sm:block bg-[#7000ff] hover:bg-[#5e00d9] text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-md shadow-purple-500/20">
+            Join Arena
           </Link>
-        ) : (
-          // Logged In
-          <div className="flex items-center gap-4">
-            <Link to="dashboard" className="text-sm sm:text-base text-gray-700 hover:text-blue-600 transition">
-              Dashboard
-            </Link>
-
-            <Link to="leaderboard" className="text-sm sm:text-base text-gray-700 hover:text-blue-600 transition">
-              Leaderboard
-            </Link>
-
-            <Link to="logout"
-              onClick={() => setIsLoggedIn(false)}
-              className="px-4 py-2 text-sm sm:text-base text-red-600 font-semibold rounded-md hover:bg-red-50 transition"
-            >
-              Logout
-            </Link>
-          </div>
-        )}
+        </div>
       </div>
     </nav>
   );
 };
-
 export default Navbar;
