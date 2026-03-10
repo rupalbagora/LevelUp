@@ -1,15 +1,61 @@
 import React from "react";
-import Navbar from "../layout/Navbar";
-import { Target, Award, Flame, Crown, PlayCircle } from "lucide-react";
+import { motion } from "framer-motion"; // Added Framer Motion
+// Lucide icons for both Navbar and Dashboard
+import { Target, Award, Flame, Crown, PlayCircle, Trophy, User, LogOut, LayoutDashboard, Zap, Calendar } from "lucide-react";
+
+// --- Animation Variants (Settings) ---
+const topAnim = { hidden: { opacity: 0, y: -50 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6 } } };
+const leftAnim = { hidden: { opacity: 0, x: -100 }, visible: { opacity: 1, x: 0, transition: { duration: 0.6, delay: 0.2 } } };
+const rightAnim = { hidden: { opacity: 0, x: 100 }, visible: { opacity: 1, x: 0, transition: { duration: 0.6, delay: 0.2 } } };
+const bottomAnim = { hidden: { opacity: 0, y: 50 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6, delay: 0.4 } } };
 
 const Dashboard = () => {
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#050816] text-slate-900 dark:text-slate-100">
-      <Navbar />
+    <div className="min-h-screen bg-slate-50 dark:bg-[#050816] text-slate-900 dark:text-slate-100 font-sans overflow-x-hidden">
+      
+      {/* --- NEW DASHBOARD NAVBAR START --- */}
+      <nav className="border-b border-slate-200/70 dark:border-white/5 bg-white/80 dark:bg-[#050816]/80 backdrop-blur-md sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+          
+          {/* Logo Section */}
+          <div className="flex items-center gap-2">
+            <div className="w-9 h-9 bg-linear-to-br from-[#2563eb] to-[#7c3aed] rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+              <LayoutDashboard className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-xl font-black tracking-tight text-slate-900 dark:text-white">
+              LevelUp
+            </span>
+          </div>
+
+          {/* Nav Links */}
+          <div className="hidden md:flex items-center gap-8">
+            <button className="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-[#2563eb] dark:hover:text-cyan-400 transition-colors">
+              <Trophy className="w-4 h-4" />
+              Leaderboard
+            </button>
+            <button className="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-[#2563eb] dark:hover:text-cyan-400 transition-colors">
+              <User className="w-4 h-4" />
+              Profile
+            </button>
+          </div>
+
+          {/* Logout Button */}
+          <div className="flex items-center gap-4">
+            <button className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-100 dark:hover:bg-rose-500/20 transition-all border border-rose-100 dark:border-white/5">
+              <LogOut className="w-4 h-4" />
+              <span>Logout</span>
+            </button>
+          </div>
+        </div>
+      </nav>
+      {/* --- NEW DASHBOARD NAVBAR END --- */}
 
       <main className="max-w-7xl mx-auto px-6 py-10 space-y-8">
-        {/* Top Welcome Banner */}
-        <section className="rounded-3xl bg-linear-to-r from-[#2563eb] via-[#4f46e5] to-[#7c3aed] text-white px-8 py-7 flex flex-col md:flex-row md:items-center md:justify-between gap-6 shadow-lg shadow-blue-500/20">
+        {/* Top Welcome Banner - Top Animation */}
+        <motion.section 
+          initial="hidden" animate="visible" variants={topAnim}
+          className="rounded-3xl bg-linear-to-r from-[#2563eb] via-[#4f46e5] to-[#7c3aed] text-white px-8 py-7 flex flex-col md:flex-row md:items-center md:justify-between gap-6 shadow-lg shadow-blue-500/20"
+        >
           <div>
             <p className="text-sm uppercase tracking-[0.2em] font-semibold text-white/80 mb-2">
               Welcome back
@@ -21,15 +67,19 @@ const Dashboard = () => {
               Ready to start your next coding battle?
             </p>
           </div>
-          <button className="inline-flex items-center gap-2 bg-white text-slate-900 px-5 py-3 rounded-2xl font-semibold text-sm shadow-md hover:shadow-lg transition-shadow">
+          <motion.button 
+            whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+            className="inline-flex items-center gap-2 bg-white text-slate-900 px-5 py-3 rounded-2xl font-semibold text-sm shadow-md hover:shadow-lg transition-shadow"
+          >
             <PlayCircle className="w-5 h-5 text-[#2563eb]" />
             <span>Start New Battle</span>
-          </button>
-        </section>
+          </motion.button>
+        </motion.section>
 
         {/* Stats Row */}
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="rounded-2xl bg-white dark:bg-[#060910] border border-slate-200/70 dark:border-white/5 px-5 py-4 shadow-sm">
+          {/* Left Stats */}
+          <motion.div initial="hidden" animate="visible" variants={leftAnim} className="rounded-2xl bg-white dark:bg-[#060910] border border-slate-200/70 dark:border-white/5 px-5 py-4 shadow-sm">
             <div className="flex items-center justify-between mb-3">
               <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
                 Total Battles
@@ -39,9 +89,9 @@ const Dashboard = () => {
               </div>
             </div>
             <p className="text-2xl font-bold">47</p>
-          </div>
+          </motion.div>
 
-          <div className="rounded-2xl bg-white dark:bg-[#060910] border border-slate-200/70 dark:border-white/5 px-5 py-4 shadow-sm">
+          <motion.div initial="hidden" animate="visible" variants={leftAnim} className="rounded-2xl bg-white dark:bg-[#060910] border border-slate-200/70 dark:border-white/5 px-5 py-4 shadow-sm">
             <div className="flex items-center justify-between mb-3">
               <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
                 Win Rate
@@ -51,9 +101,10 @@ const Dashboard = () => {
               </div>
             </div>
             <p className="text-2xl font-bold">68%</p>
-          </div>
+          </motion.div>
 
-          <div className="rounded-2xl bg-white dark:bg-[#060910] border border-slate-200/70 dark:border-white/5 px-5 py-4 shadow-sm">
+          {/* Right Stats */}
+          <motion.div initial="hidden" animate="visible" variants={rightAnim} className="rounded-2xl bg-white dark:bg-[#060910] border border-slate-200/70 dark:border-white/5 px-5 py-4 shadow-sm">
             <div className="flex items-center justify-between mb-3">
               <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
                 Current Streak
@@ -63,9 +114,9 @@ const Dashboard = () => {
               </div>
             </div>
             <p className="text-2xl font-bold">5</p>
-          </div>
+          </motion.div>
 
-          <div className="rounded-2xl bg-white dark:bg-[#060910] border border-slate-200/70 dark:border-white/5 px-5 py-4 shadow-sm">
+          <motion.div initial="hidden" animate="visible" variants={rightAnim} className="rounded-2xl bg-white dark:bg-[#060910] border border-slate-200/70 dark:border-white/5 px-5 py-4 shadow-sm">
             <div className="flex items-center justify-between mb-3">
               <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
                 Global Rank
@@ -75,13 +126,74 @@ const Dashboard = () => {
               </div>
             </div>
             <p className="text-2xl font-bold">#342</p>
-          </div>
+          </motion.div>
         </section>
+
+        {/* --- NEW SECTION: RECOMMENDED BATTLE + MONTHLY PROGRESS START --- */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Left: Recommended Challenge */}
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 }}
+            className="rounded-2xl bg-amber-50 dark:bg-amber-500/5 border border-amber-200 dark:border-amber-500/20 p-5 flex items-center gap-4"
+          >
+            <div className="p-3 bg-amber-500 rounded-2xl text-white shadow-lg shadow-amber-500/30">
+              <Zap className="w-6 h-6 animate-pulse" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-xs font-bold text-amber-900 dark:text-amber-200 uppercase tracking-widest">Next Target</h3>
+              <p className="text-sm text-amber-800/80 dark:text-amber-400/80 mt-1 font-medium">
+                Master <span className="font-bold underline">Strings</span> to beat your rivals.
+              </p>
+            </div>
+            <button className="px-4 py-2 bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-amber-600 transition-all active:scale-95">
+              Start
+            </button>
+          </motion.div>
+
+          {/* Right: GitHub Style Weekly Progress (1 Month) */}
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 }}
+            className="rounded-2xl bg-white dark:bg-[#060910] border border-slate-200/70 dark:border-white/5 p-5 shadow-sm"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-emerald-500" />
+                <h3 className="text-xs font-bold uppercase tracking-widest">Monthly Progress</h3>
+              </div>
+              <span className="text-[10px] font-bold text-slate-400">MARCH</span>
+            </div>
+            <div className="flex gap-1.5 justify-center">
+              {/* Generating 5 weeks for 1 month */}
+              {Array.from({ length: 5 }).map((_, weekIdx) => (
+                <div key={weekIdx} className="flex flex-col gap-1.5">
+                  {Array.from({ length: 7 }).map((_, dayIdx) => {
+                    const level = Math.floor(Math.random() * 4);
+                    return (
+                      <div
+                        key={dayIdx}
+                        className={`w-3.5 h-3.5 rounded-sm ${
+                          level === 0 ? "bg-slate-100 dark:bg-white/5" :
+                          level === 1 ? "bg-emerald-500/30" :
+                          level === 2 ? "bg-emerald-500/60" : "bg-emerald-500"
+                        }`}
+                      />
+                    );
+                  })}
+                </div>
+              ))}
+              <div className="ml-4 flex flex-col justify-center gap-1 text-[9px] font-bold text-slate-400 uppercase">
+                 <div className="flex items-center gap-1"><div className="w-2 h-2 bg-emerald-500 rounded-sm"></div> Active</div>
+                 <div className="flex items-center gap-1"><div className="w-2 h-2 bg-slate-200 dark:bg-white/10 rounded-sm"></div> Idle</div>
+              </div>
+            </div>
+          </motion.div>
+        </section>
+        {/* --- NEW SECTION END --- */}
 
         {/* Middle Grid: Quick Actions + Battle History */}
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Quick Actions */}
-          <div className="rounded-2xl bg-white dark:bg-[#060910] border border-slate-200/70 dark:border-white/5 p-5 shadow-sm flex flex-col gap-4">
+          {/* Quick Actions - Left Animation */}
+          <motion.div initial="hidden" animate="visible" variants={leftAnim} className="rounded-2xl bg-white dark:bg-[#060910] border border-slate-200/70 dark:border-white/5 p-5 shadow-sm flex flex-col gap-4">
             <div>
               <h2 className="text-base font-semibold mb-1">Quick Actions</h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -102,10 +214,10 @@ const Dashboard = () => {
                 <span className="text-xs opacity-80">Hard</span>
               </button>
             </div>
-          </div>
+          </motion.div>
 
-          {/* Battle History */}
-          <div className="lg:col-span-2 rounded-2xl bg-white dark:bg-[#060910] border border-slate-200/70 dark:border-white/5 p-5 shadow-sm flex flex-col gap-4">
+          {/* Battle History - Right Animation */}
+          <motion.div initial="hidden" animate="visible" variants={rightAnim} className="lg:col-span-2 rounded-2xl bg-white dark:bg-[#060910] border border-slate-200/70 dark:border-white/5 p-5 shadow-sm flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-base font-semibold mb-1">Battle History</h2>
@@ -154,47 +266,52 @@ const Dashboard = () => {
                 </div>
               ))}
             </div>
-          </div>
+          </motion.div>
         </section>
 
-        {/* Topic Mastery */}
-        <section className="rounded-2xl bg-white dark:bg-[#060910] border border-slate-200/70 dark:border-white/5 p-5 shadow-sm">
+        {/* Topic Mastery - Bottom Animation */}
+        <motion.section 
+          initial="hidden" animate="visible" variants={bottomAnim}
+          className="rounded-2xl bg-white dark:bg-[#060910] border border-slate-200/70 dark:border-white/5 p-5 shadow-sm"
+        >
           <div className="flex items-center justify-between mb-5">
             <div>
               <h2 className="text-base font-semibold mb-1">Topic Mastery</h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Your progress across DSA topics
+                Your progress across DSA topics (Target: 10 Battles)
               </p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[
-              { label: "Arrays & Strings", value: "12 battles", width: "w-10/12" },
-              { label: "Binary Search", value: "8 battles", width: "w-8/12" },
-              { label: "Dynamic Programming", value: "5 battles", width: "w-4/12" },
-              { label: "Trees & Graphs", value: "9 battles", width: "w-7/12" },
+              { label: "Arrays & Strings", value: 12, percent: "100%" }, // 12 khele (Target 10 se zyada)
+              { label: "Binary Search", value: 8, percent: "80%" },      // 8/10 = 80%
+              { label: "Dynamic Programming", value: 5, percent: "50%" }, // 5/10 = 50%
+              { label: "Trees & Graphs", value: 9, percent: "90%" },      // 9/10 = 90%
             ].map((topic, idx) => (
               <div key={idx} className="space-y-2">
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-medium">{topic.label}</span>
                   <span className="text-slate-500 dark:text-slate-400">
-                    {topic.value}
+                    {topic.value} battles
                   </span>
                 </div>
                 <div className="h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
-                  <div
-                    className={`h-full ${topic.width} bg-linear-to-r from-[#2563eb] via-[#4f46e5] to-[#7c3aed] rounded-full`}
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: topic.percent }}
+                    transition={{ duration: 1, delay: 0.6 }}
+                    className="h-full bg-linear-to-r from-[#2563eb] via-[#4f46e5] to-[#7c3aed] rounded-full"
                   />
                 </div>
               </div>
             ))}
           </div>
-        </section>
+        </motion.section>
       </main>
     </div>
   );
 };
 
 export default Dashboard;
-

@@ -6,17 +6,22 @@ import StatsSection from "./StatsSection";
 import CTASection from "./CTASection";
 import CodeEditorSection from "./codesection";
 import Workingsection from "./Workingsection";
+import Dashboard from '../Dashboard/Dashboard';
+import BattleSetup from '../Dashboard/BattleSetup';
 import Footer from '../layout/Footer';
+
 const Home = () => {
   return (
     <div>
-      <Navbar/>
+    
       <HeroSection/>
       <FeaturesSection />
       <StatsSection/>
       <CodeEditorSection/>
       <Workingsection/>
       <CTASection />
+      <Dashboard />
+      <BattleSetup/>
       <Footer />
       
       

@@ -65,7 +65,7 @@ const HeroSection = () => {
         {/* 🎯 RESTORED FONT SIZES (5xl for mobile, 7xl for desktop) */}
         <h1 className="text-5xl md:text-7xl font-black tracking-tighter text-slate-900 dark:text-white mb-6 leading-tight">
           Code. Compete. <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#7000ff] to-[#00d4ff]">
+          <span className="gradient-text">
             Conquer.
           </span>
         </h1>

@@ -1,5 +1,13 @@
 @import "tailwindcss";
+@import "./styles/component.css";
+.input_box{
+ /* @apply w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none */
+ @apply w-full px-4 pl-10 my-2 py-2 border rounded-md  text-black placeholder-gray-400 focus:ring-2  focus:ring-blue-500 outline-none 
+}
 
+.btn{
+  @apply w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition my-2
+}
 /* Dark mode support */
 @variant dark (&:where(.dark, .dark *));
 

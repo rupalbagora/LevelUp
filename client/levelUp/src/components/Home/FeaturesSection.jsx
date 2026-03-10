@@ -13,48 +13,45 @@ const FeaturesSection = () => {
   ];
 
   return (
-    <section className="bg-white dark:bg-[#060910] py-32 transition-colors duration-500 overflow-hidden">
+    <section className="section-base overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 text-center">
-        
         {/* Section Heading */}
         <div className="mb-20">
-          <h2 className="text-5xl md:text-6xl font-black text-slate-900 dark:text-white mb-6 tracking-tighter">
-            Built for the <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#7000ff] to-[#00d4ff]">Pro Coder</span>
+          <h2 className="section-heading">
+            Built for the <span className="gradient-text">Pro Coder</span>
           </h2>
           <p className="text-slate-500 dark:text-slate-400 max-w-2xl mx-auto text-lg font-medium">
-            Experience the most advanced competitive programming environment ever built.
+            Experience the most advanced competitive programming environment
+            ever built.
           </p>
         </div>
 
-        <motion.div 
-  initial={{ opacity: 0, y: 40 }} 
-  whileInView={{ opacity: 1, y: 0 }} 
-  viewport={{ once: true }} 
-  transition={{ duration: 0.8 }}
-  className="grid gap-6 sm:gap-8 md:gap-10 sm:grid-cols-2 lg:grid-cols-3"
->
-  {features.map((f, i) => (
-    <div 
-      key={i} 
-      className={`group relative 
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="grid gap-6 sm:gap-8 md:gap-10 sm:grid-cols-2 lg:grid-cols-3"
+        >
+          {features.map((f, i) => (
+            <div
+              key={i}
+              className={`group relative 
         p-6 sm:p-8 md:p-10
         rounded-3xl md:rounded-[40px]
-        bg-white dark:bg-[#0d121d]/40 
-        border border-slate-200 dark:border-white/5 
-        transition-all duration-500 
+         card-base
         hover:-translate-y-2 md:hover:-translate-y-4
         flex flex-col justify-between 
         text-left overflow-hidden
         ${f.lightColor} ${f.darkColor}`}
-    >
+            >
+              {/* Light Mode Inner BG */}
+              <div className="absolute inset-0 bg-gradient-to-br from-white to-slate-50 dark:from-transparent dark:to-transparent -z-10"></div>
 
-      {/* Light Mode Inner BG */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white to-slate-50 dark:from-transparent dark:to-transparent -z-10"></div>
-
-      <div>
-
-        {/* Icon */}
-        <div className="
+              <div>
+                {/* Icon */}
+                <div
+                  className="
           w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16
           rounded-xl md:rounded-2xl
           bg-slate-100 dark:bg-white/5
@@ -65,28 +62,28 @@ const FeaturesSection = () => {
           group-hover:text-white 
           dark:group-hover:text-[#00d4ff]
           transition-all duration-500
-        ">
-          {React.cloneElement(f.icon, { 
-            size: window.innerWidth < 640 ? 22 : 28 
-          })}
-        </div>
+        "
+                >
+                  {React.cloneElement(f.icon, {
+                    size: window.innerWidth < 640 ? 22 : 28,
+                  })}
+                </div>
 
-        <h3 className="text-xl sm:text-2xl font-black mb-3 md:mb-4 text-slate-900 dark:text-white tracking-tight">
-          {f.title}
-        </h3>
+                <h3 className="text-xl sm:text-2xl font-black mb-3 md:mb-4 text-slate-900 dark:text-white tracking-tight">
+                  {f.title}
+                </h3>
 
-        <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
-          {f.desc}
-        </p>
-      </div>
+                <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                  {f.desc}
+                </p>
+              </div>
 
-      <div className="mt-6 sm:mt-8 flex items-center gap-2 text-xs sm:text-sm font-bold text-[#7000ff] dark:text-[#00d4ff] opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 uppercase tracking-widest">
-        Explore <span className="text-lg">→</span>
-      </div>
-
-    </div>
-  ))}
-</motion.div>
+              <div className="mt-6 sm:mt-8 flex items-center gap-2 text-xs sm:text-sm font-bold text-[#7000ff] dark:text-[#00d4ff] opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 uppercase tracking-widest">
+                Explore <span className="text-lg">→</span>
+              </div>
+            </div>
+          ))}
+        </motion.div>
       </div>
     </section>
   );
