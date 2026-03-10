@@ -1,58 +1,51 @@
-// const RegisterForm = () => {
-//   return (
-//     <div className="bg-white p-4 border border-gray-100 rounded-md shadow-md">
-//       <form className="space-y-4">
-//         <label for="">Username</label>
-//         <input type="text" placeholder="Username" className="input_box" />
-// <label for="">Email</label>
-//         <input type="email" placeholder="Email" className="input_box" />
-// <label for="">Password</label>
-//         <input type="password" placeholder="Password" className="input_box" />
-// {/* <label for="">Choose Your Avatar</label> */}
-
-//         <button type="submit" className="btn">
-//          Create Account
-//         </button>
-//       </form>
-//     </div>
-//   );
-// };
-// export default RegisterForm;
 
 import { User, Mail, Lock } from "lucide-react";
 import { useState } from "react";
+import { useDispatch } from "react-redux";
+import { registerUser } from "../../store/auth-slice/authSlice";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const RegisterForm = () => {
+    const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleRegister = async (e) => {
-    e.preventDefault();
+  // const handleRegister = async (e) => {
+  //   e.preventDefault();
 
-    try {
-      const { data } = await axios.post(
-        "http://localhost:5000/api/auth/register",
-        {
-          username,
-          email,
-          password,
-        },
-      );
+  //   try {
+  //     const { data } = await axios.post(
+  //       "http://localhost:5000/api/auth/register",
+  //       {
+  //         username,
+  //         email,
+  //         password,
+  //       },
+  //     );
 
-      alert(data.message || "Registration successful");
+  //     alert(data.message || "Registration successful");
 
-      // redirect to login
-      navigate("/signin");
-    } catch (error) {
-      alert(error.response?.data?.message || "Registration failed");
-    }
-  };
+  //     // redirect to login
+  //     navigate("/signin");
+  //   } catch (error) {
+  //     alert(error.response?.data?.message || "Registration failed");
+  //   }
+  // };
+ const handleRegister = async (e) => {
+   e.preventDefault();
+   const result = await dispatch(registerUser({ username, email, password }));
 
+   if (registerUser.fulfilled.match(result)) {
+     alert("Registration successful! Please sign in.");
+     navigate("/signin");
+   } else {
+     alert(result.payload?.message || "Registration failed");
+   }
+ };
   return (
     <form onSubmit={handleRegister} className="space-y-6">
       {/* Username */}

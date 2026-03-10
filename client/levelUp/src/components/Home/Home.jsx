@@ -20,8 +20,6 @@ const Home = () => {
       <CodeEditorSection/>
       <Workingsection/>
       <CTASection />
-      <Dashboard />
-      <BattleSetup/>
       <Footer />
       
       

@@ -1,47 +1,13 @@
-// import { Navigate, useNavigate } from "react-router-dom";
-// import { Mail } from "lucide-react";
-// import { Lock } from "lucide-react";
-
-// const LoginForm = () => {
-//   const navigate = useNavigate();
-//   return (
-//     <div className="bg-white p-4 border border-gray-100 rounded-md shadow-md">
-//       <form className="space-y-4">
-//         <label for="">Email</label>
-//         <div className="relative w-full">
-//           <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-//           <input
-//             type="email"
-//             placeholder="your@email.com"
-//             className="input_box"
-//           />
-//         </div>
-
-//         <label for="">Password</label>
-//         <div className="relative w-full">
-//           <Lock className=" absolute top-1/2 -translate-y-1/2 left-3 w-5 h-5 text-gray-400" />
-//           <input type="password" placeholder="Password" className="input_box" />
-//         </div>
-//         <button
-//           type="submit"
-//           className="btn"
-//           onClick={() => navigate("/dashboard")}
-//         >
-//           Sign In
-//         </button>
-//       </form>
-//     </div>
-//   );
-// };
-// export default LoginForm;
-
 import { Mail, Lock, Eye, EyeOff, Zap } from "lucide-react";
+import { useDispatch } from "react-redux";
+import { loginUser } from "../../store/auth-slice/authSlice";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import axios from "axios";
 
 const LoginForm = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const [showPassword, setShowPassword] = useState(false);
@@ -49,29 +15,38 @@ const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
+  // const handleLogin = async (e) => {
+  //   e.preventDefault();
 
-    try {
-      const { data } = await axios.post(
-        "http://localhost:5000/api/auth/login",
-        {
-          email,
-          password,
-        },
-      );
+  //   try {
+  //     const { data } = await axios.post(
+  //       "http://localhost:5000/api/auth/login",
+  //       {
+  //         email,
+  //         password,
+  //       },
+  //     );
 
-      // Save token
-      localStorage.setItem("token", data.token);
+  //     // Save token
+  //     localStorage.setItem("token", data.token);
 
-      // redirect
-      navigate("/dashboard");
-    } catch (error) {
-      console.log(error.response.data)
-      alert(error.response?.data?.message || "Login failed");
-    }
-  };
+  //     // redirect
+  //     navigate("/dashboard");
+  //   } catch (error) {
+  //     console.log(error.response.data)
+  //     alert(error.response?.data?.message || "Login failed");
+  //   }
+  // };
+const handleLogin = async (e) => {
+  e.preventDefault();
+  const result = await dispatch(loginUser({ email, password }));
 
+  if (loginUser.fulfilled.match(result) && result.payload.success) {
+    navigate("/dashboard");
+  } else {
+    alert(result.payload?.message || "Login failed");
+  }
+};
   return (
     <form onSubmit={handleLogin} className="space-y-6">
       {/* Arena Badge */}
@@ -145,3 +120,4 @@ const LoginForm = () => {
 };
 
 export default LoginForm;
+
