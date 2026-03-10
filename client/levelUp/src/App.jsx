@@ -88,7 +88,7 @@ function App() {
           path="/battle-setup"
           element={
             <CheckAuth isAuthenticated={isAuthenticated}>
-              <BattleSetup />
+              <BattleSetup />   
             </CheckAuth>
           }
         />
