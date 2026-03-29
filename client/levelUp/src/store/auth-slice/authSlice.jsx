@@ -25,6 +25,7 @@ export const loginUser = createAsyncThunk("/auth/login", async (formData) => {
     formData,
     { withCredentials: true },
   );
+  console.log(response.data)
   return response.data;
 });
 

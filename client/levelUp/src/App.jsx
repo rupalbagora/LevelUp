@@ -35,9 +35,13 @@ import DashboardLayout from "./components/Dashboard/DashboardLayout";
 import BattleSetup from "./components/Dashboard/BattleSetup";
 import NotFound from "./pages/NotFound";
 import Footer from "./components/layout/Footer";
+import BattlePage from "./pages/BattlePage";
+
+
 
 function App() {
   const { user, isAuthenticated, isLoading } = useSelector((state) => state.auth);
+  console.log("hello",user)
   const dispatch = useDispatch();
 
   // On every app load, ask the server "is this user still valid?"
@@ -61,7 +65,6 @@ function App() {
       <Routes>
         {/* Public — no guard needed */}
         <Route path="/" element={<Home />} />
-
         {/* Auth pages — redirect to /dashboard if already logged in */}
         <Route
           path="/signin"
@@ -71,19 +74,17 @@ function App() {
             </CheckAuth>
           }
         />
-
         {/* Protected pages — redirect to /signin if not logged in */}
         <Route
           path="/dashboard"
           element={
             <CheckAuth isAuthenticated={isAuthenticated}>
               {/* <DashboardLayout> */}
-                <Dashboard />
+              <Dashboard />
               {/* </DashboardLayout> */}
             </CheckAuth>
           }
         />
-
         <Route
           path="/battle-setup"
           element={
@@ -92,10 +93,11 @@ function App() {
             </CheckAuth>
           }
         />
-
+        // In your router:
+        <Route path="/battle" element={<BattlePage />} />;
         <Route path="*" element={<NotFound />} />
       </Routes>
-      <Footer/>
+      <Footer />
     </div>
   );
 }

@@ -12,7 +12,7 @@ const aiHintSchema = new mongoose.Schema({
   },
 
   hintText: String,
-
+ 
   createdAt: {
     type: Date,
     default: Date.now,

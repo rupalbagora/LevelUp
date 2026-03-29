@@ -1,8 +1,19 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, Zap, Copy, Share2, Swords, CheckCircle2, Lock } from "lucide-react";
-
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 const BattleSetup = () => {
+  const { user } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
+  const handleStartBattle = () => {
+    if (!user) {
+      navigate("/signin"); // not logged in → send to signin
+    } else {
+      console.log("kjhgf")
+      navigate("/start-battle"); // logged in → go straight to setup
+    }
+  };
   const [step, setStep] = useState(1);
   const [selection, setSelection] = useState({ topic: "", difficulty: "" });
 
@@ -168,7 +179,7 @@ const BattleSetup = () => {
                 <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-xl text-[10px] font-bold uppercase">Hints<br/><span className="text-blue-600">3 Available</span></div>
               </div>
 
-              <button className="w-full bg-blue-600 py-4 rounded-2xl text-white font-black uppercase tracking-widest mb-4 shadow-xl">Start Battle Now</button>
+              <button className="w-full bg-blue-600 py-4 rounded-2xl text-white font-black uppercase tracking-widest mb-4 shadow-xl cursor-pointer" onClick={()=>{handleStartBattle()}}>Start Battle Now</button>
               <button onClick={() => setStep(1)} className="text-slate-400 font-bold hover:text-blue-600 transition-colors">Back to Dashboard</button>
             </motion.div>
           )}

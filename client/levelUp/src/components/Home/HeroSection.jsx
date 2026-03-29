@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { ChevronRight, Zap } from "lucide-react";
 import { motion } from "framer-motion";
-
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 const languages = [
   "JavaScript", "Python", "C++", "Java",
   "Go", "Rust", "TypeScript", "Kotlin",
@@ -9,7 +10,17 @@ const languages = [
 ];
 
 const HeroSection = () => {
+    const { user } = useSelector((state) => state.auth);
+  const navigate = useNavigate()
+
   const [pos, setPos] = useState({ x: 0, y: 0 });
+  const handleStartBattle = () => {
+    if (!user) {
+      navigate("/signin"); // not logged in → send to signin
+    } else {
+      navigate("/dashboard"); // logged in → go straight to setup
+    }
+  };
 
   useEffect(() => {
     const move = (e) => {
@@ -24,26 +35,53 @@ const HeroSection = () => {
 
   return (
     <section className="relative w-full min-h-screen overflow-hidden bg-white dark:bg-[#050816] transition-colors duration-500 flex flex-col justify-center">
-
       {/* 🔵 Bottom Blue Glow */}
       <div className="absolute inset-0 pointer-events-none hidden dark:block">
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 
+        <div
+          className="absolute bottom-0 left-1/2 -translate-x-1/2 
           w-full max-w-[1200px] h-[50%] 
           bg-[radial-gradient(circle_at_center_bottom,_rgba(37,99,235,0.6)_0%,_transparent_70%)]
-          blur-3xl opacity-70">
-        </div>
+          blur-3xl opacity-70"
+        ></div>
       </div>
 
       {/* 🎯 RESPONSIVE RINGS (Bottom-Up Scaling) */}
       <div className="absolute inset-x-0 bottom-0 flex justify-center pointer-events-none">
         <div className="relative w-full max-w-[1000px] aspect-[2/1] overflow-hidden">
-          <svg 
-            viewBox="0 0 1000 500" 
+          <svg
+            viewBox="0 0 1000 500"
             className="w-full h-full opacity-40 md:opacity-100"
           >
-            <circle cx="500" cy="500" r="200" stroke="currentColor" className="text-gray-400 dark:text-white/10" strokeWidth="1" fill="none" strokeDasharray="6 6" />
-            <circle cx="500" cy="500" r="300" stroke="currentColor" className="text-gray-400 dark:text-white/10" strokeWidth="1" fill="none" strokeDasharray="6 6" />
-            <circle cx="500" cy="500" r="400" stroke="currentColor" className="text-gray-500 dark:text-white/20" strokeWidth="1" fill="none" strokeDasharray="6 6" />
+            <circle
+              cx="500"
+              cy="500"
+              r="200"
+              stroke="currentColor"
+              className="text-gray-400 dark:text-white/10"
+              strokeWidth="1"
+              fill="none"
+              strokeDasharray="6 6"
+            />
+            <circle
+              cx="500"
+              cy="500"
+              r="300"
+              stroke="currentColor"
+              className="text-gray-400 dark:text-white/10"
+              strokeWidth="1"
+              fill="none"
+              strokeDasharray="6 6"
+            />
+            <circle
+              cx="500"
+              cy="500"
+              r="400"
+              stroke="currentColor"
+              className="text-gray-500 dark:text-white/20"
+              strokeWidth="1"
+              fill="none"
+              strokeDasharray="6 6"
+            />
           </svg>
         </div>
       </div>
@@ -65,9 +103,7 @@ const HeroSection = () => {
         {/* 🎯 RESTORED FONT SIZES (5xl for mobile, 7xl for desktop) */}
         <h1 className="text-5xl md:text-7xl font-black tracking-tighter text-slate-900 dark:text-white mb-6 leading-tight">
           Code. Compete. <br />
-          <span className="gradient-text">
-            Conquer.
-          </span>
+          <span className="gradient-text">Conquer.</span>
         </h1>
 
         {/* Original Subtext Size */}
@@ -76,13 +112,18 @@ const HeroSection = () => {
         </p>
 
         {/* Original Button Scaling */}
-        <button className="group relative flex items-center mx-auto cursor-pointer">
+        <button
+          className="group relative flex items-center mx-auto cursor-pointer"
+          onClick={handleStartBattle}
+        >
           <span className="absolute -inset-[2px] rounded-full opacity-0 group-hover:opacity-100 transition duration-500 bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 blur-md" />
           <span className="relative flex items-center rounded-full pl-1 pr-8 py-1.5 border border-gray-300 dark:border-white/10 bg-white dark:bg-[#0b0f1f] transition duration-300">
             <span className="flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 dark:bg-gradient-to-br dark:from-white dark:to-gray-300 text-black shadow-inner transition duration-300 group-hover:scale-110">
               <ChevronRight size={20} />
             </span>
-            <span className="ml-4 font-semibold text-lg tracking-wide text-gray-900 dark:text-white">Get Started</span>
+            <span className="ml-4 font-semibold text-lg tracking-wide text-gray-900 dark:text-white">
+              Get Started
+            </span>
           </span>
         </button>
       </div>
@@ -93,8 +134,10 @@ const HeroSection = () => {
           <div
             className="absolute inset-0 z-10"
             style={{
-              WebkitMaskImage: "linear-gradient(to right, transparent, black 20%, black 80%, transparent)",
-              maskImage: "linear-gradient(to right, transparent, black 20%, black 80%, transparent)",
+              WebkitMaskImage:
+                "linear-gradient(to right, transparent, black 20%, black 80%, transparent)",
+              maskImage:
+                "linear-gradient(to right, transparent, black 20%, black 80%, transparent)",
             }}
           />
           <div className="animate-marquee whitespace-nowrap text-xl md:text-2xl font-bold text-gray-400 dark:text-white/20 flex gap-12 md:gap-16 pt-8">

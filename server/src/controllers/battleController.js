@@ -17,6 +17,7 @@ if (!topic || !difficulty) {
       message: "Battle created",
       battleId: battle._id,
     });
+    console.log("Created battle:", battle._id);
   } catch (error) {
     console.log(error.message)
     res.status(500).json({ message: "Battle creation failed" });
