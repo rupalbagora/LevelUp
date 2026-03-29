@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 
 const CTASection = () => {
   return (
-    <section className="relative pt-0 md:pt-28 pb-24 px-6 z-30 transition-colors duration-500 bg-white dark:bg-[#060910]">
+    <section className="relative -mt-20 md:-mt-32 pb-24 px-6 z-30 transition-colors duration-500 bg-white dark:bg-[#060910]">
 
       <div className="max-w-3xl mx-auto text-center">
 
