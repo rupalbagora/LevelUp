@@ -11,7 +11,7 @@ const submissionSchema = new mongoose.Schema({
   },
 
   code: String,
-
+  language: String,
   isCorrect: Boolean,
 
   runtimeMs: Number,

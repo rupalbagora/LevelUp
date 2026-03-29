@@ -9,12 +9,6 @@ export const joinBattle = async (req, res) => {
      if (!battle) {
        return res.status(404).json({ message: "Battle not found" });
      }
-battle.startTime = new Date();
-
-const BATTLE_DURATION = 30 * 60 * 1000; // 30 minutes
-battle.endTime = new Date(Date.now() + BATTLE_DURATION);
-
-   
 
     if (battle.status !== "waiting") {
       return res.status(400).json({ message: "Battle already started" });
@@ -40,11 +34,18 @@ battle.endTime = new Date(Date.now() + BATTLE_DURATION);
     const randomIndex = Math.floor(Math.random()*questions.length);
     const selectedQuestion = questions[randomIndex];
 
+
+
+const BATTLE_DURATION = 30 * 60 * 1000; // 30 minutes
+battle.startTime = new Date();
+battle.endTime = new Date(Date.now() + BATTLE_DURATION);
+
+   
     // Assign question + opponent
     battle.opponentId = req.user;
     battle.questionId = selectedQuestion._id;
     battle.status = "ongoing";
-    battle.startTime = new Date();
+    // battle.startTime = new Date();
 
     await battle.save();
 

@@ -1,0 +1,57 @@
+import Battle from "../models/Battle.js";
+import Question from "../models/question.js";
+import { executeCode } from "../services/codeExecutor.js";
+export const runCode = async (req, res) => {
+  try {
+    const { battleId } = req.params;
+    const { code, language } = req.body;
+
+    const battle = await Battle.findById(battleId);
+    if (!battle) return res.status(404).json({ message: "Battle not found" });
+    
+    // ✅ ADD: participant check
+    if (
+      battle.creatorId.toString() !== req.user &&
+      battle.opponentId.toString() !== req.user
+    ) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    // ✅ ADD: time check
+    const now = new Date();
+    const timeLimit = battle.extendedEndTime || battle.endTime;
+    if (now > timeLimit) {
+      return res.status(400).json({ message: "Battle time over" });
+    }
+
+    const question = await Question.findById(battle.questionId);
+    if (!question)
+      return res.status(404).json({ message: "Question not found" });
+
+    const publicTests = question.testCases.public;
+    const testResults = [];
+
+    for (const test of publicTests) {
+      const result = await executeCode({ language, code, input: test.input });
+      const passed =
+        result.success && result.output?.trim() === test.output.trim();
+      testResults.push({
+        input: test.input,
+        expected: test.output,
+        actual: result.output,
+        passed,
+      });
+    }
+
+    const passedCount = testResults.filter((t) => t.passed).length;
+
+    res.json({
+      summary: `${passedCount}/${publicTests.length} test cases passed`,
+      passedCount,
+      totalCount: publicTests.length,
+      testResults,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Run failed" });
+  }
+};

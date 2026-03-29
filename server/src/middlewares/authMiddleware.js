@@ -1,7 +1,8 @@
 import jwt from "jsonwebtoken"
 
 const protect =  (req,res,next) => {
-  let token ;
+  // let token ;
+  let token = req.cookies.token;
 
   if (
     req.headers.authorization && req.headers.authorization.startsWith ("Bearer")
