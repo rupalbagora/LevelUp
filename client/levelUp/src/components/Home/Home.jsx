@@ -6,9 +6,8 @@ import StatsSection from "./StatsSection";
 import CTASection from "./CTASection";
 import CodeEditorSection from "./codesection";
 import Workingsection from "./Workingsection";
-import Dashboard from '../Dashboard/Dashboard';
-import BattleSetup from '../Dashboard/BattleSetup';
-import Footer from '../layout/Footer';
+
+import BattleArena from '../Dashboard/BattleArena';
 
 const Home = () => {
   return (
@@ -21,7 +20,7 @@ const Home = () => {
       <Workingsection/>
       <CTASection />
     
-      
+      {/* <BattleArena/> */}
       
       
     </div>
