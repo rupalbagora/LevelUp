@@ -38,5 +38,8 @@ function getVersion(language) {
     javascript: "18.15.0",
     java: "15.0.2",
   };
+  if (!map[language]) {
+    throw new Error("Unsupported language");
+  }
   return map[language];
 }

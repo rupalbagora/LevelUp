@@ -14,4 +14,4 @@ const leaderboardSchema = new mongoose.Schema({
     default: Date.now,
   },
 });
-export default mongoose.model("leaderboard", leaderboardSchema)
+export default mongoose.model("leaderboard", leaderboardSchema) 

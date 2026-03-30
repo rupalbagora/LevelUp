@@ -5,10 +5,14 @@ export const runCode = async (req, res) => {
   try {
     const { battleId } = req.params;
     const { code, language } = req.body;
-
+if (!code || !language) {
+  return res.status(400).json({ message: "Code and language required" });
+}
     const battle = await Battle.findById(battleId);
     if (!battle) return res.status(404).json({ message: "Battle not found" });
-    
+    if (battle.status !== "ongoing") {
+      return res.status(400).json({ message: "Battle not active" });
+    }
     // ✅ ADD: participant check
     if (
       battle.creatorId.toString() !== req.user &&

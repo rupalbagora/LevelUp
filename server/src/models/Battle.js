@@ -39,7 +39,10 @@ const battleSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
-
+timeoutScheduled: {
+  type: Boolean,
+  default: false,
+},
     startTime: Date,
     endTime: Date,
     extendedEndTime: Date,
