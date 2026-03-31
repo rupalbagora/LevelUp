@@ -13,7 +13,7 @@ const FeaturesSection = () => {
   ];
 
   return (
-    <section className="section-base overflow-hidden">
+    <section className="section-base overflow-hidden pt-32 md:pt-30 pb-32 md:pb-30">
       <div className="max-w-7xl mx-auto px-6 text-center">
         {/* Section Heading */}
         <div className="mb-20">

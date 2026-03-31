@@ -75,7 +75,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="w-full glass-nav sticky top-0 z-50">
+    <nav className="w-full absolute top-0 z-50 bg-white dark:bg-[#050816] border-b border-gray-100 dark:border-white/5 transition-colors duration-500">
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">

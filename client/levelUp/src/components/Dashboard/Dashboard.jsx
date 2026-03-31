@@ -24,7 +24,7 @@ const Dashboard = () => {
   };
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#050816] text-slate-900 dark:text-slate-100 font-sans overflow-x-hidden">
-      <main className="max-w-7xl mx-auto px-6 py-10 space-y-8">
+      <main className="max-w-7xl mx-auto px-6 pt-24 md:pt-28 pb-10 space-y-8">
         {/* Top Welcome Banner - Top Animation */}
         <motion.section
           initial="hidden"

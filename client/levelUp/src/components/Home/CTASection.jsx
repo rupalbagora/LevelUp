@@ -3,7 +3,8 @@ import { motion } from "framer-motion";
 
 const CTASection = () => {
   return (
-    <section className="relative -mt-20 md:-mt-32 pb-24 px-6 z-30 transition-colors duration-500 bg-white dark:bg-[#060910]">
+    /* Humne -mt-20 hata kar pt-32 (padding-top) add kiya he taaki gap dikhe */
+    <section className="relative pt-32 md:pt-30 pb-24 px-6 z-30 transition-colors duration-500 bg-white dark:bg-[#060910]">
 
       <div className="max-w-3xl mx-auto text-center">
 
