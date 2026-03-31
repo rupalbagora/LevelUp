@@ -34,9 +34,11 @@ const HeroSection = () => {
   }, []);
 
   return (
-    <section className="relative w-full min-h-screen overflow-hidden bg-white dark:bg-[#050816] transition-colors duration-500 flex flex-col justify-center">
+    <section className="relative w-full min-h-screen overflow-hidden bg-white dark:bg-[#050816] transition-colors duration-500 flex flex-col items-center">
       {/* 🔵 Bottom Blue Glow */}
       <div className="absolute inset-0 pointer-events-none hidden dark:block">
+        
+        
         <div
           className="absolute bottom-0 left-1/2 -translate-x-1/2 
           w-full max-w-[1200px] h-[50%] 
@@ -46,6 +48,7 @@ const HeroSection = () => {
       </div>
 
       {/* 🎯 RESPONSIVE RINGS (Bottom-Up Scaling) */}
+      
       <div className="absolute inset-x-0 bottom-0 flex justify-center pointer-events-none">
         <div className="relative w-full max-w-[1000px] aspect-[2/1] overflow-hidden">
           <svg
@@ -93,8 +96,8 @@ const HeroSection = () => {
         style={{ x: pos.x, y: pos.y }}
         className="absolute inset-0 w-full h-full object-cover opacity-30 dark:opacity-50 pointer-events-none"
       />
-
-      <div className="relative z-10 max-w-7xl mx-auto px-6 pt-20 pb-32 text-center">
+      <div className="relative z-10 max-w-7xl mx-auto px-6 pt-32 pb-32 text-center">
+      
         {/* Original Badge Style */}
         <div className="inline-flex items-center gap-2 rounded-full bg-purple-100 dark:bg-white/5 px-5 py-2 border border-purple-200 dark:border-white/10 text-sm text-[#7000ff] dark:text-cyan-400 font-bold mb-8 backdrop-blur-lg">
           <Zap size={14} fill="currentColor" /> THE NEXT GEN ARENA

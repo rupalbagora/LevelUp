@@ -61,26 +61,77 @@ export function getRankInfo(rank) {
 
 // Starter code templates
 export const STARTER_CODE = {
-  javascript: `function solution(arr, target) {
-  // write your code here
-  
-}`,
+  python3: `# Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+class Solution:
+    def addTwoNumbers(self, l1, l2):
+        # write your code here
+        pass
+`,
 
-  python: `def solution(arr, target):
-    # write your code here
-    pass
+  javascript: `/**
+ * @param {ListNode} l1
+ * @param {ListNode} l2
+ * @return {ListNode}
+ */
+function addTwoNumbers(l1, l2) {
+  // write your code here
+}
 `,
 
   java: `class Solution {
-    public int solution(int[] arr, int target) {
-        return -1;
+    public ListNode addTwoNumbers(ListNode l1, ListNode l2) {
+        // write your code here
+        return null;
     }
 }`,
+
+  cpp: `class Solution {
+public:
+    ListNode* addTwoNumbers(ListNode* l1, ListNode* l2) {
+        // write your code here
+        return nullptr;
+    }
+};`,
 };
 
 // Language selector options
 export const LANGUAGE_OPTIONS = [
+  { value: "python3", label: "Python3" },
   { value: "javascript", label: "JavaScript" },
-  { value: "python", label: "Python" },
   { value: "java", label: "Java" },
+  { value: "cpp", label: "C++" },
+];
+
+// Monaco language id mapping
+export const MONACO_LANGUAGE_MAP = {
+  python3: "python",
+  javascript: "javascript",
+  java: "java",
+  cpp: "cpp",
+};
+
+// Mock testcases for console panel
+export const MOCK_TESTCASES = [
+  {
+    id: 1,
+    label: "Case 1",
+    inputs: { l1: "[2,4,3]", l2: "[5,6,4]" },
+    expected: "[7,0,8]",
+  },
+  {
+    id: 2,
+    label: "Case 2",
+    inputs: { l1: "[0]", l2: "[0]" },
+    expected: "[0]",
+  },
+  {
+    id: 3,
+    label: "Case 3",
+    inputs: { l1: "[9,9,9,9,9,9,9]", l2: "[9,9,9,9]" },
+    expected: "[8,9,9,9,0,0,0,1]",
+  },
 ];

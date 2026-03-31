@@ -4,7 +4,6 @@ import {
   animateTimerPulse,
   animateSubmitClick,
 } from "../../../utils/gsapAnimations";
-
 import { getDifficultyColor } from "../../../utils/battleHelpers";
 
 export default function BattleHeader({
@@ -19,7 +18,6 @@ export default function BattleHeader({
 }) {
   const timerRef = useRef(null);
   const submitRef = useRef(null);
-
   const prevFormatted = useRef(formatted);
   const warningFired = useRef(false);
 
@@ -45,48 +43,54 @@ export default function BattleHeader({
   const diffColor = getDifficultyColor(difficulty);
 
   return (
-    <header className="flex items-center justify-between h-14 px-5 bg-[#0d1321] border-b border-slate-800">
-      <div className="flex items-center gap-2">
-        <div className="flex items-center justify-center w-8 h-8 bg-blue-500/10 border border-blue-500/30 rounded">
-          ⚔
+    <header className="flex items-center justify-between h-12 px-4 bg-slate-50 dark:bg-[#282828] border-b border-slate-200 dark:border-[#3a3a3a] flex-shrink-0 select-none">
+      {/* Left: branding + problem info */}
+      <div className="flex items-center gap-4">
+        <div className="text-[#7000ff] font-bold tracking-tighter text-base">
+          LEVEL UP
         </div>
-
-        <div className="flex flex-col">
-          <span className="text-xs uppercase tracking-wider text-slate-400 font-semibold">
-            Battle Arena
-          </span>
-
-          <span className="flex items-center gap-1 font-bold">
+        <div className="h-4 w-[1px] bg-slate-300 dark:bg-slate-700" />
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate max-w-[180px]">
             {topic}
-            <span className="w-[3px] h-[3px] bg-slate-400 rounded-full" />
-            <span style={{ color: diffColor }}>{difficulty}</span>
+          </span>
+          <span
+            className="text-[10px] px-2 py-0.5 rounded-full font-semibold"
+            style={{ color: diffColor, backgroundColor: `${diffColor}18` }}
+          >
+            {difficulty}
           </span>
         </div>
       </div>
 
+      {/* Center: Timer */}
       <div
         ref={timerRef}
-        className={`flex items-center gap-2 px-4 py-1 rounded font-mono text-lg
-        ${isCritical ? "text-red-500" : isWarning ? "text-yellow-500" : ""}`}
+        className={`font-mono text-sm font-bold px-3 py-1 rounded-md border ${
+          isCritical
+            ? "text-red-500 border-red-500/30 bg-red-500/10 animate-pulse"
+            : isWarning
+            ? "text-yellow-500 border-yellow-500/30 bg-yellow-500/10"
+            : "text-emerald-500 dark:text-emerald-400 border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-[#1e2536]"
+        }`}
       >
-        ⏱ {formatted}
+        {formatted}
       </div>
 
-      <div className="flex gap-3">
+      {/* Right: Actions */}
+      <div className="flex items-center gap-2">
         <button
           onClick={onHint}
-          disabled={hintsRemaining === 0}
-          className="px-3 py-1 rounded border border-orange-400/40 text-orange-400 hover:bg-orange-500/10 text-sm font-semibold"
+          className="text-xs text-slate-500 dark:text-slate-400 hover:text-[#ffa116] transition-colors font-medium"
         >
-          ⚡ Hint ({hintsRemaining})
+          Hints ({hintsRemaining})
         </button>
-
         <button
           ref={submitRef}
           onClick={handleSubmit}
-          className="px-4 py-1 rounded bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm"
+          className="ml-1 px-4 py-1.5 bg-[#2cbb5d] hover:bg-[#25a050] active:scale-95 text-white rounded text-xs font-bold transition-all duration-150"
         >
-          ✓ Submit
+          Submit
         </button>
       </div>
     </header>
