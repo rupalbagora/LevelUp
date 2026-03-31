@@ -3,6 +3,7 @@ import Submission from "../models/Submission.js";
 import Question from "../models/question.js";
 import { completeBattle } from "../services/battleServices.js";
 import { executeCode } from "../services/codeExecutor.js";
+import { io } from "../../server.js"; // top of file
 
 export const submitCode = async (req, res) => {
   try {
@@ -99,7 +100,7 @@ export const submitCode = async (req, res) => {
     //   }, remainingTime);
     // }
     // ✅ Only schedule once
-  
+
     // 6️⃣ Fetch question for this battle
     const question = await Question.findById(battle.questionId);
 
@@ -127,11 +128,11 @@ export const submitCode = async (req, res) => {
       });
 
       if (!result.success) {
-  allPassed = false;
-  break;
-}
+        allPassed = false;
+        break;
+      }
 
-const passed = result.output?.trim() === test.output.trim();
+      const passed = result.output?.trim() === test.output.trim();
 
       testResults.push({
         input: test.input,
@@ -150,6 +151,11 @@ const passed = result.output?.trim() === test.output.trim();
     // update submission
     submission.isCorrect = isCorrect;
     await submission.save();
+    // 🔥 REAL-TIME: submission update
+    io.to(battleId.toString()).emit("submissionUpdate", {
+      userId,
+      isCorrect,
+    });
 
     // 7️⃣ Check if battle should be completed
     // const submissionsCount = await Submission.countDocuments({ battleId });
@@ -171,23 +177,23 @@ const passed = result.output?.trim() === test.output.trim();
     if (totalCount >= 2 || (correctCount >= 1 && now > battle.endTime)) {
       await completeBattle(battleId);
     }
-  if (!battle.timeoutScheduled && remainingTime > 0) {
-    battle.timeoutScheduled = true;
-    await battle.save(); // save flag
+    if (!battle.timeoutScheduled && remainingTime > 0) {
+      battle.timeoutScheduled = true;
+      await battle.save(); // save flag
 
-    setTimeout(async () => {
-      try {
-        const latestBattle = await Battle.findById(battleId);
+      setTimeout(async () => {
+        try {
+          const latestBattle = await Battle.findById(battleId);
 
-        if (latestBattle && latestBattle.status !== "completed") {
-          await completeBattle(battleId);
-          console.log("⏱️ Battle auto-completed due to timeout");
+          if (latestBattle && latestBattle.status !== "completed") {
+            await completeBattle(battleId);
+            console.log("⏱️ Battle auto-completed due to timeout");
+          }
+        } catch (err) {
+          console.error("Timeout error:", err);
         }
-      } catch (err) {
-        console.error("Timeout error:", err);
-      }
-    }, remainingTime);
-  }
+      }, remainingTime);
+    }
     res.status(201).json({
       message: isCorrect ? "Accepted" : "Wrong Answer",
       submissionId: submission._id,
