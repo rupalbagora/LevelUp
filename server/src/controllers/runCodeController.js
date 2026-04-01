@@ -1,6 +1,7 @@
 import Battle from "../models/Battle.js";
 import Question from "../models/question.js";
 import { executeCode } from "../services/codeExecutor.js";
+import {io} from "../../server.js"
 export const runCode = async (req, res) => {
   try {
     const { battleId } = req.params;
@@ -9,14 +10,17 @@ if (!code || !language) {
   return res.status(400).json({ message: "Code and language required" });
 }
     const battle = await Battle.findById(battleId);
+    io.to(battleId.toString()).emit("userRunningCode", {
+      userId: req.user,
+    });
     if (!battle) return res.status(404).json({ message: "Battle not found" });
     if (battle.status !== "ongoing") {
       return res.status(400).json({ message: "Battle not active" });
     }
     // ✅ ADD: participant check
     if (
-      battle.creatorId.toString() !== req.user &&
-      battle.opponentId.toString() !== req.user
+      !battle.creatorId.equals(req.user) &&
+      !(battle.opponentId && battle.opponentId.equals(req.user))
     ) {
       return res.status(403).json({ message: "Access denied" });
     }

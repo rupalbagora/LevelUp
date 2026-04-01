@@ -20,12 +20,14 @@ export const submitCode = async (req, res) => {
     if (!code || !language) {
       return res.status(400).json({ message: "Code and language required" });
     }
-
-    if (battle.status === "completed") {
-      return res.status(400).json({
-        message: "Battle already completed",
-      });
-    }
+if (battle.status !== "ongoing") {
+  return res.status(400).json({ message: "Battle is not active" });
+}
+    // if (battle.status === "completed") {
+    //   return res.status(400).json({
+    //     message: "Battle already completed",
+    //   });
+    // }
 
     // 2️⃣ Check user is part of the battle
     if (
@@ -77,29 +79,33 @@ export const submitCode = async (req, res) => {
     if (!battle.firstSubmissionTime) {
       battle.firstSubmissionTime = now;
       battle.extendedEndTime = new Date(now.getTime() + 2 * 60 * 1000);
+
+      await battle.save();
+
+      // 🔥 ADD THIS (REAL-TIME TIMER UPDATE)
+      io.to(battleId.toString()).emit("extraTime", {
+        extendedEndTime: battle.extendedEndTime,
+      });
+
+      // 🔥 ADD THIS (AUTO COMPLETE AFTER 2 MIN)
+      // setTimeout(
+      //   async () => {
+      //     const latestBattle = await Battle.findById(battleId);
+
+      //     if (latestBattle && latestBattle.status !== "completed") {
+      //       await completeBattle(battleId);
+      //       console.log("⏱️ Auto completed after extra time");
+      //     }
+      //   },
+      //   2 * 60 * 1000,
+      // );
     }
-
-    await battle.save();
     // 🕒 Schedule battle auto-completion
-    const remainingTime = battle.extendedEndTime
-      ? new Date(battle.extendedEndTime).getTime() - Date.now()
-      : new Date(battle.endTime).getTime() - Date.now();
+    const timeLimit = battle.extendedEndTime
+      ? new Date(battle.extendedEndTime).getTime()
+      : new Date(battle.endTime).getTime();
 
-    // if (remainingTime > 0) {
-    //   setTimeout(async () => {
-    //     try {
-    //       const latestBattle = await Battle.findById(battleId);
-
-    //       if (latestBattle && latestBattle.status !== "completed") {
-    //         await completeBattle(battleId);
-    //         console.log("⏱️ Battle auto-completed due to timeout");
-    //       }
-    //     } catch (err) {
-    //       console.error("Timeout error:", err);
-    //     }
-    //   }, remainingTime);
-    // }
-    // ✅ Only schedule once
+    const remainingTime = timeLimit - Date.now();
 
     // 6️⃣ Fetch question for this battle
     const question = await Question.findById(battle.questionId);
@@ -120,6 +126,8 @@ export const submitCode = async (req, res) => {
     }
 
     const testResults = [];
+    let totalRuntime = 0;
+    let totalMemory = 0;
     for (const test of hiddenTests) {
       const result = await executeCode({
         language,
@@ -131,6 +139,8 @@ export const submitCode = async (req, res) => {
         allPassed = false;
         break;
       }
+      totalRuntime += result.runtime || 0; 
+      totalMemory += result.memory || 0; 
 
       const passed = result.output?.trim() === test.output.trim();
 
@@ -147,6 +157,11 @@ export const submitCode = async (req, res) => {
       }
     }
     const isCorrect = allPassed;
+    // 🔥 ADD PERFORMANCE DATA
+    submission.runtimeMs = totalRuntime;
+    submission.memoryUsedKb = totalMemory;
+
+   
 
     // update submission
     submission.isCorrect = isCorrect;
@@ -174,10 +189,12 @@ export const submitCode = async (req, res) => {
     // if (correctCount >= 1 || totalCount >= 2) {
     //   await completeBattle(battleId);
     // }
-    if (totalCount >= 2 || (correctCount >= 1 && now > battle.endTime)) {
+    const effectiveEndTime = battle.extendedEndTime || battle.endTime;
+
+    if (totalCount >= 2 || (correctCount >= 1 && now > effectiveEndTime)) {
       await completeBattle(battleId);
     }
-    if (!battle.timeoutScheduled && remainingTime > 0) {
+    if (!battle.timeoutScheduled && remainingTime > 5000) {
       battle.timeoutScheduled = true;
       await battle.save(); // save flag
 

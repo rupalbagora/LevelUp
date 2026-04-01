@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head><script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script></head>
+<body>
+<script>
+  const BATTLE_ID = "PASTE_YOUR_BATTLE_ID_HERE";
+  const socket = io("http://localhost:5000");
+
+  socket.on("connect", () => {
+    console.log("Connected:", socket.id);
+    socket.emit("joinBattleRoom", BATTLE_ID);
+  });
+
+  // Listen for all key events
+  ["battleStarted", "timerSync", "extraTime", "submissionUpdate", 
+   "battleEnded", "userRunningCode"].forEach(event => {
+    socket.on(event, data => console.log(`📡 ${event}:`, data));
+  });
+</script>
+</body>
+</html>
