@@ -12,9 +12,7 @@ dotenv.config();
 const app = express();
 
 // Allows frontend to call backend APIs
-app.use(cors({ origin: "http://localhost:5173", credentials: true ,
-  origin: "http://localhost:5174", credentials: true
-}));
+app.use(cors({ origin: ["http://localhost:5173","http://localhost:5176"], credentials: true }));
 app.use(cookieParser());
 
 // Allows backend to read JSON data from requests

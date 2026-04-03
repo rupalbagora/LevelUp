@@ -1,21 +1,127 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, Zap, Copy, Share2, Swords, CheckCircle2, Lock } from "lucide-react";
+import { ChevronLeft, Zap, Copy, Share2, Swords, CheckCircle2, Lock, Loader2, XCircle, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { createBattleAPI, joinBattleAPI, terminateBattleAPI } from "../../services/battleService";
+
 const BattleSetup = () => {
   const { user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
-  const handleStartBattle = () => {
-    if (!user) {
-      navigate("/signin"); // not logged in → send to signin
-    } else {
-      console.log("kjhgf")
-      navigate("/start-battle"); // logged in → go straight to setup
-    }
-  };
+
+  // --- States ---
   const [step, setStep] = useState(1);
   const [selection, setSelection] = useState({ topic: "", difficulty: "" });
+  const [battleId, setBattleId] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [battleStatus, setBattleStatus] = useState("waiting");
+  
+  const [showWaitingModal, setShowWaitingModal] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(120); // 2 minutes timer (in seconds)
+
+  // --- Logic functions ---
+  const handleGenerateLink = async () => {
+    setIsGenerating(true);
+    try {
+      const data = await createBattleAPI(selection.topic, selection.difficulty);
+      if (data.battleId) {
+        setBattleId(data.battleId);
+        setStep(3);
+      }
+    } catch (err) {
+      alert("Link generate nahi ho payi. Please check if you're logged in!");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const copyToClipboard = () => {
+  // Yahan '/challenge/' use karo taaki opponent pehle Accept/Decline dekhe
+  const link = `${window.location.origin}/challenge/${battleId}`; 
+  navigator.clipboard.writeText(link);
+  setCopied(true);
+  setTimeout(() => setCopied(false), 2000);
+};
+
+  const handleStartBattle = () => {
+    if (!user) {
+      navigate("/signin");
+    } else {
+      setShowWaitingModal(true);
+      setBattleStatus("waiting");
+      setTimeLeft(120); // Reset timer to 2 mins
+    }
+  };
+
+  
+
+  // Polling & Timer Logic
+// Polling & Timer Logic
+useEffect(() => {
+  let interval;
+  let timer;
+
+  if (showWaitingModal && battleStatus === "waiting") {
+    // 1. Polling for Status
+    interval = setInterval(async () => {
+      try {
+        // Yahan variable ka naam 'response' rakha hai
+        const response = await joinBattleAPI(battleId).catch(err => {
+          return err.response; 
+        }); 
+
+        // Fix: 'data' ki jagah 'response' use kiya hai
+        if (response && response.status === "ongoing") {
+        setBattleStatus("ongoing");
+        clearInterval(interval);
+        clearInterval(timer);
+        navigate(`/battle/${battleId}`); // Ye aapko Editor page par le jayega
+        } else if (response && response.status === "cancelled") {
+          setBattleStatus("cancelled");
+          clearInterval(interval);
+          clearInterval(timer);
+        }
+      } catch (err) {
+        console.log("Waiting for opponent to take action...");
+      }
+    }, 3000);
+
+    // 2. Countdown Timer
+    timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          clearInterval(interval);
+          handleExpireBattle();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }
+
+  return () => {
+    clearInterval(interval);
+    clearInterval(timer);
+  };
+}, [showWaitingModal, battleId, battleStatus, navigate]);
+
+  const handleExpireBattle = async () => {
+    setBattleStatus("expired");
+    try {
+      await terminateBattleAPI(battleId); // Backend par link expire kar do
+    } catch (err) {
+      console.error("Expiry update failed");
+    }
+  };
+
+  // Timer format helper (02:00)
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  };
 
   const topics = [
     { id: "arrays", name: "Arrays & Strings", icon: "📊" },
@@ -34,23 +140,21 @@ const BattleSetup = () => {
 
   return (
     <div className="min-h-screen bg-[#f8fafc] dark:bg-[#050816] py-12 px-6 font-sans">
-      {/* Back Button */}
-      <button className="flex items-center gap-2 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all mb-10">
+      <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all mb-10">
         <ChevronLeft size={20} /> Back to Dashboard
       </button>
 
-      {/* --- GAMIFIED MAP STEPS --- */}
+      {/* GAMIFIED MAP STEPS */}
       <div className="max-w-4xl mx-auto flex justify-center items-center gap-4 mb-16 relative">
         {[1, 2, 3].map((s) => (
           <React.Fragment key={s}>
             <div className="relative flex flex-col items-center">
               <motion.div
-                initial={false}
                 animate={{
                   backgroundColor: step >= s ? "#2563eb" : "#e2e8f0",
                   scale: step === s ? 1.2 : 1,
                 }}
-                className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold shadow-xl z-10`}
+                className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold shadow-xl z-10"
               >
                 {step > s ? <CheckCircle2 size={24} /> : s}
               </motion.div>
@@ -61,7 +165,6 @@ const BattleSetup = () => {
             {s < 3 && (
               <div className="w-20 h-1 bg-slate-200 dark:bg-white/5 relative overflow-hidden">
                 <motion.div 
-                  initial={{ width: 0 }}
                   animate={{ width: step > s ? "100%" : "0%" }}
                   className="absolute h-full bg-blue-500"
                 />
@@ -73,95 +176,49 @@ const BattleSetup = () => {
 
       <div className="max-w-2xl mx-auto">
         <AnimatePresence mode="wait">
-          {/* STEP 1: TOPIC SELECTION */}
           {step === 1 && (
-            <motion.div
-              key="step1"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="bg-white dark:bg-[#060910] border border-slate-200 dark:border-white/5 p-8 rounded-[2.5rem] shadow-2xl shadow-blue-500/5"
-            >
+            <motion.div key="step1" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="bg-white dark:bg-[#060910] border border-slate-200 dark:border-white/5 p-8 rounded-[2.5rem] shadow-2xl shadow-blue-500/5">
               <h2 className="text-2xl font-black mb-2">Choose Your Topic</h2>
-              <p className="text-slate-500 text-sm mb-8">Select a DSA topic for this battle</p>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
                 {topics.map((t) => (
-                  <button
-                    key={t.id}
-                    onClick={() => setSelection({ ...selection, topic: t.name })}
-                    className={`flex items-center gap-4 p-5 rounded-2xl border-2 transition-all active:scale-95 ${
-                      selection.topic === t.name 
-                      ? "border-blue-600 bg-blue-50 dark:bg-blue-500/10" 
-                      : "border-slate-100 dark:border-white/5 hover:border-blue-300"
-                    }`}
-                  >
+                  <button key={t.id} onClick={() => setSelection({ ...selection, topic: t.name })} className={`flex items-center gap-4 p-5 rounded-2xl border-2 transition-all ${selection.topic === t.name ? "border-blue-600 bg-blue-50 dark:bg-blue-500/10" : "border-slate-100 dark:border-white/5"}`}>
                     <span className="text-2xl">{t.icon}</span>
                     <span className="font-bold text-sm">{t.name}</span>
                   </button>
                 ))}
               </div>
-              
-              <button
-                disabled={!selection.topic}
-                onClick={() => setStep(2)}
-                className="w-full mt-8 bg-blue-600 disabled:bg-slate-300 py-4 rounded-2xl text-white font-black uppercase tracking-widest shadow-lg shadow-blue-500/30 hover:bg-blue-700 transition-all flex items-center justify-center gap-2"
-              >
+              <button disabled={!selection.topic} onClick={() => setStep(2)} className="w-full mt-8 bg-blue-600 disabled:bg-slate-300 py-4 rounded-2xl text-white font-black uppercase tracking-widest shadow-lg hover:bg-blue-700 transition-all flex items-center justify-center gap-2">
                 Next Step <Zap size={18} fill="currentColor" />
               </button>
             </motion.div>
           )}
 
-          {/* STEP 2: DIFFICULTY */}
           {step === 2 && (
-            <motion.div
-              key="step2"
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -50 }}
-              className="bg-white dark:bg-[#060910] border border-slate-200 dark:border-white/5 p-8 rounded-[2.5rem] shadow-2xl shadow-blue-500/5"
-            >
+            <motion.div key="step2" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }} className="bg-white dark:bg-[#060910] border border-slate-200 dark:border-white/5 p-8 rounded-[2.5rem] shadow-2xl shadow-blue-500/5">
               <h2 className="text-2xl font-black mb-2">Select Difficulty</h2>
-              <p className="text-slate-500 text-sm mb-8">Topic: <span className="text-blue-600 font-bold">{selection.topic}</span></p>
-
-              <div className="space-y-4">
+              <div className="space-y-4 mt-6">
                 {difficulties.map((d) => (
-                  <button
-                    key={d.id}
-                    onClick={() => setSelection({ ...selection, difficulty: d.name })}
-                    className={`w-full flex flex-col items-start p-6 rounded-2xl border-2 transition-all ${
-                      selection.difficulty === d.name 
-                      ? "border-blue-600 bg-blue-50 dark:bg-blue-500/10" 
-                      : "border-slate-100 dark:border-white/5"
-                    }`}
-                  >
+                  <button key={d.id} onClick={() => setSelection({ ...selection, difficulty: d.name })} className={`w-full flex flex-col items-start p-6 rounded-2xl border-2 transition-all ${selection.difficulty === d.name ? "border-blue-600 bg-blue-50 dark:bg-blue-500/10" : "border-slate-100 dark:border-white/5"}`}>
                     <span className={`font-black text-lg ${d.color}`}>{d.name}</span>
                     <span className="text-xs text-slate-500">{d.desc}</span>
                   </button>
                 ))}
               </div>
-
               <div className="flex gap-4 mt-8">
                 <button onClick={() => setStep(1)} className="flex-1 py-4 border-2 border-slate-100 dark:border-white/5 rounded-2xl font-bold">Back</button>
                 <button 
-                  disabled={!selection.difficulty}
-                  onClick={() => setStep(3)}
-                  className="flex-[2] bg-blue-600 disabled:bg-slate-300 text-white rounded-2xl font-black uppercase tracking-widest shadow-lg shadow-blue-500/30"
+                  disabled={!selection.difficulty || isGenerating}
+                  onClick={handleGenerateLink} 
+                  className="flex-[2] bg-blue-600 disabled:bg-slate-300 text-white rounded-2xl font-black uppercase tracking-widest shadow-lg"
                 >
-                  Generate Battle Link
+                  {isGenerating ? "Generating..." : "Generate Battle Link"}
                 </button>
               </div>
             </motion.div>
           )}
 
-          {/* STEP 3: FINAL LAUNCH */}
           {step === 3 && (
-            <motion.div
-              key="step3"
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="bg-white dark:bg-[#060910] border border-slate-200 dark:border-white/5 p-8 rounded-[2.5rem] shadow-2xl shadow-blue-500/5 text-center"
-            >
+            <motion.div key="step3" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-white dark:bg-[#060910] border border-slate-200 dark:border-white/5 p-8 rounded-[2.5rem] shadow-2xl shadow-blue-500/5 text-center">
               <div className="w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-emerald-500/30">
                 <Swords size={40} className="text-white" />
               </div>
@@ -169,8 +226,15 @@ const BattleSetup = () => {
               <p className="text-slate-500 mb-8">Share this link with your opponent</p>
 
               <div className="bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 p-4 rounded-2xl flex items-center justify-between mb-8">
-                <span className="text-sm font-mono truncate mr-4">levelup.dev/battle/tgza...</span>
-                <button className="bg-blue-600 p-2 rounded-xl text-white"><Copy size={18} /></button>
+                <span className="text-xs font-mono truncate mr-4 text-blue-600">
+                  {window.location.origin}/battle/{battleId}
+                </span>
+                <button 
+                  onClick={copyToClipboard}
+                  className={`${copied ? 'bg-emerald-500' : 'bg-blue-600'} p-2 rounded-xl text-white transition-all`}
+                >
+                  {copied ? <CheckCircle2 size={18} /> : <Copy size={18} />}
+                </button>
               </div>
 
               <div className="grid grid-cols-3 gap-4 mb-8">
@@ -179,12 +243,68 @@ const BattleSetup = () => {
                 <div className="p-3 bg-slate-50 dark:bg-white/5 rounded-xl text-[10px] font-bold uppercase">Hints<br/><span className="text-blue-600">3 Available</span></div>
               </div>
 
-              <button className="w-full bg-blue-600 py-4 rounded-2xl text-white font-black uppercase tracking-widest mb-4 shadow-xl cursor-pointer" onClick={()=>{handleStartBattle()}}>Start Battle Now</button>
+              <button className="w-full bg-blue-600 py-4 rounded-2xl text-white font-black uppercase tracking-widest mb-4 shadow-xl" onClick={handleStartBattle}>Start Battle Now</button>
               <button onClick={() => setStep(1)} className="text-slate-400 font-bold hover:text-blue-600 transition-colors">Back to Dashboard</button>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
+
+      {/* --- TIMED POP-UP MODAL --- */}
+      <AnimatePresence>
+        {showWaitingModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+            <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-md" />
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }} 
+              animate={{ scale: 1, opacity: 1, y: 0 }} 
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative bg-white dark:bg-[#0b0f1a] w-full max-w-sm p-8 rounded-[2.5rem] shadow-2xl text-center border border-white/10"
+            >
+              {battleStatus === "waiting" && (
+                <>
+                  <div className="relative w-20 h-20 mx-auto mb-6">
+                     <Loader2 className="absolute inset-0 text-blue-600 animate-spin" size={80} strokeWidth={1} />
+                     <div className="absolute inset-0 flex items-center justify-center font-black text-blue-600">
+                        {formatTime(timeLeft)}
+                     </div>
+                  </div>
+                  <h3 className="text-xl font-black italic">Waiting for Opponent...</h3>
+                  <p className="text-slate-500 text-sm mt-2">Challenge expires in 2 minutes if not accepted.</p>
+                </>
+              )}
+
+              {battleStatus === "expired" && (
+                <>
+                  <Clock className="mx-auto mb-4 text-orange-500" size={56} />
+                  <h3 className="text-xl font-black text-orange-600 italic">Link Expired!</h3>
+                  <p className="text-slate-500 text-sm mt-2">Time is up. No one joined the battle.</p>
+                  <button 
+                    onClick={() => setShowWaitingModal(false)}
+                    className="mt-6 w-full py-4 bg-slate-100 dark:bg-white/5 rounded-2xl font-bold text-slate-600"
+                  >
+                    OKAY
+                  </button>
+                </>
+              )}
+
+              {battleStatus === "cancelled" && (
+                <>
+                  <XCircle className="mx-auto mb-4 text-rose-500" size={56} />
+                  <h3 className="text-xl font-black text-rose-600 italic">Opponent Declined</h3>
+                  <p className="text-slate-500 text-sm mt-2 font-medium">Your challenge was rejected by the opponent.</p>
+                  <button 
+                    onClick={() => setShowWaitingModal(false)}
+                    className="mt-6 w-full py-4 bg-slate-100 dark:bg-white/5 rounded-2xl font-bold text-slate-600"
+                  >
+                    Close Window
+                  </button>
+                </>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

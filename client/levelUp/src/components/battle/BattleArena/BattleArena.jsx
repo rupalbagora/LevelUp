@@ -4,6 +4,7 @@ import { animateArenaIn } from "../../../utils/gsapAnimations";
 import { useBattleTimer } from "../../../hooks/useBattleTimer";
 import { usePanelResize, useVerticalResize } from "../../../hooks/usePanelResize";
 
+
 import BattleHeader from "./BattleHeader";
 import ProblemStatement from "./ProblemStatement";
 import CodeEditor from "./CodeEditor";
@@ -292,10 +293,11 @@ export default function BattleArena({
 
           <div className="flex-shrink-0">
             <AIHintPanel
-              code={code}
-              hintsRemaining={hintsRemaining}
-              onHintUsed={handleHintUsed}
-            />
+  code={code}
+  hintsRemaining={hintsRemaining}
+  onHintUsed={handleHintUsed}
+  problemStatement={problem.description || problem.topic} // Ye line add ki taaki AI ko context mile
+/>
           </div>
 
           <div className="flex-1 overflow-hidden min-h-0">

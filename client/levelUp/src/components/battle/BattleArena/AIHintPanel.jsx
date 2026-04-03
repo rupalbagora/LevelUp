@@ -1,25 +1,13 @@
 import { useState } from "react";
 import { Lightbulb, Sparkles, Zap, AlignLeft } from "lucide-react";
+import { motion } from "framer-motion";
+import { useParams } from "react-router-dom"; 
+import { fetchAIHint } from "../../../services/hintService"; 
 
-// Separate Mock Data for different hint types
-const MOCK_ONE_LINERS = [
-  "Use two pointers to traverse both lists simultaneously.",
-  "Keep track of the 'carry' value in each step.",
-  "Initialize a dummy head for the result list."
-];
-
-const MOCK_DETAILED = [
-  "Detailed: Create a 'carry' variable starting at 0. While l1 or l2 exists, add their values plus carry. Use sum % 10 for the new node and sum / 10 for the next carry.",
-  "Detailed: Handle lists of different lengths by treating null nodes as 0. After the loop, if carry > 0, append a final node with the carry value.",
-  "Detailed: Time complexity will be O(max(N, M)). Space complexity is O(max(N, M)) to store the new sum linked list."
-];
-
-let oneLineIdx = 0;
-let detailedIdx = 0;
-
-export default function AIHintPanel({ code = "", hintsRemaining = 3, onHintUsed }) {
+export default function AIHintPanel({ code = "", hintsRemaining = 3, onHintUsed, problemStatement }) {
+  const { battleId } = useParams(); 
   const [hint, setHint] = useState(null);
-  const [currentType, setCurrentType] = useState(null); // 'quick' | 'detailed'
+  const [currentType, setCurrentType] = useState(null); 
   const [isHintLoading, setIsHintLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -27,31 +15,28 @@ export default function AIHintPanel({ code = "", hintsRemaining = 3, onHintUsed 
     if (hintsRemaining <= 0) return;
 
     if (!code.trim()) {
-      setHint(null);
       setError("Please write some code first to get a specific hint.");
       return;
     }
 
     setError(null);
-    setHint(null);
-    setCurrentType(type);
     setIsHintLoading(true);
-    
-    // Parent component function to reduce hint count
-    onHintUsed?.();
 
-    // AI thinking simulation
-    await new Promise((resolve) => setTimeout(resolve, 1200));
-
-    if (type === "quick") {
-      setHint(MOCK_ONE_LINERS[oneLineIdx % MOCK_ONE_LINERS.length]);
-      oneLineIdx++;
-    } else {
-      setHint(MOCK_DETAILED[detailedIdx % MOCK_DETAILED.length]);
-      detailedIdx++;
+    try {
+      // REAL API CALL - Gemini se data yahan aayega
+      const data = await fetchAIHint(battleId, code, problemStatement, type);
+      
+      setHint(data.hint);
+      setCurrentType(type);
+      
+      // Parent component (BattleArena) ko signal dena count kam karne ke liye
+      onHintUsed?.(); 
+      
+    } catch (err) {
+      setError(err.response?.data?.message || "AI is taking a break. Try again!");
+    } finally {
+      setIsHintLoading(false);
     }
-
-    setIsHintLoading(false);
   }
 
   return (
@@ -66,7 +51,6 @@ export default function AIHintPanel({ code = "", hintsRemaining = 3, onHintUsed 
           <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">AI Assistant</span>
         </div>
         
-        {/* Count Badge - Rewards will increase this */}
         <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-800">
            <span className="text-[10px] font-bold text-purple-600 dark:text-purple-400">
             {hintsRemaining} HINTS LEFT
@@ -98,6 +82,22 @@ export default function AIHintPanel({ code = "", hintsRemaining = 3, onHintUsed 
           Detailed
         </button>
       </div>
+
+      {/* LIMIT MESSAGE */}
+      {hintsRemaining === 0 && (
+        <motion.div 
+          initial={{ opacity: 0, y: 5 }} 
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-4 p-3 border-t-2 border-dashed border-rose-500/30 bg-rose-500/5 text-center"
+        >
+          <p className="text-[11px] font-black text-rose-500 uppercase tracking-widest">
+            🚫 HINT LIMIT DONE: NO MORE HINTS TO TAKE!
+          </p>
+          <p className="text-[9px] text-slate-400 mt-1">
+            Use your own logic now, Warrior! ⚔️
+          </p>
+        </motion.div>
+      )}
 
       {/* Error / Loading / Hint Text */}
       {error && !isHintLoading && (

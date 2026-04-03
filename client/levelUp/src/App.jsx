@@ -36,6 +36,7 @@ import BattleSetup from "./components/Dashboard/BattleSetup";
 import NotFound from "./pages/NotFound";
 import Footer from "./components/layout/Footer";
 import BattlePage from "./pages/BattlePage";
+import OpponentMatchIntro from "./components/battle/MatchIntro/OpponentMatchIntro";
 
 
 
@@ -63,40 +64,65 @@ function App() {
     <div className="bg-gray-50">
       <Navbar />
       <Routes>
-        {/* Public — no guard needed */}
-        <Route path="/" element={<Home />} />
-        {/* Auth pages — redirect to /dashboard if already logged in */}
-        <Route
-          path="/signin"
-          element={
-            <CheckAuth isAuthenticated={isAuthenticated}>
-              <Auth />
-            </CheckAuth>
-          }
-        />
-        {/* Protected pages — redirect to /signin if not logged in */}
-        <Route
-          path="/dashboard"
-          element={
-            <CheckAuth isAuthenticated={isAuthenticated}>
-              {/* <DashboardLayout> */}
-              <Dashboard />
-              {/* </DashboardLayout> */}
-            </CheckAuth>
-          }
-        />
-        <Route
-          path="/battle-setup"
-          element={
-            <CheckAuth isAuthenticated={isAuthenticated}>
-              <BattleSetup />
-            </CheckAuth>
-          }
-        />
-        // In your router:
-        <Route path="/battle" element={<BattlePage />} />;
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+  {/* Public — no guard needed */}
+  <Route path="/" element={<Home />} />
+
+  {/* Auth pages */}
+  <Route
+    path="/signin"
+    element={
+      <CheckAuth isAuthenticated={isAuthenticated}>
+        <Auth />
+      </CheckAuth>
+    }
+  />
+
+  {/* Protected pages */}
+  <Route
+    path="/dashboard"
+    element={
+      <CheckAuth isAuthenticated={isAuthenticated}>
+        <Dashboard />
+      </CheckAuth>
+    }
+  />
+
+  <Route
+    path="/battle-setup"
+    element={
+      <CheckAuth isAuthenticated={isAuthenticated}>
+        <BattleSetup />
+      </CheckAuth>
+    }
+  />
+
+  {/* --- BATTLE SYSTEM --- */}
+
+  {/* 1. PEHLE: Opponent ka Intro Page (Accept/Decline) */}
+  {/* Link copy karte waqt dhyan rakhna ki path '/challenge/id' ho */}
+  <Route 
+    path="/challenge/:battleId" 
+    element={
+      <CheckAuth isAuthenticated={isAuthenticated}>
+        <OpponentMatchIntro />
+      </CheckAuth>
+    } 
+  />
+
+  {/* 2. BAAD MEIN: Actual Code Editor / FIGHT! Screen */}
+  {/* Yahan par wo image wala 'FIGHT!' animation aayega */}
+  <Route 
+    path="/battle/:battleId" 
+    element={
+      <CheckAuth isAuthenticated={isAuthenticated}>
+        <BattlePage />
+      </CheckAuth>
+    } 
+  />
+
+  {/* 404 Page */}
+  <Route path="*" element={<NotFound />} />
+</Routes>
       <Footer />
     </div>
   );
