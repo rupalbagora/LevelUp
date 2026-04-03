@@ -58,40 +58,60 @@ export default function MatchIntro({ players, onComplete }) {
     }
   }, [showFight]);
 
-  return (
-    <div className="fixed inset-0 flex items-center justify-center battle-bg">
-      <div ref={flashRef} className="absolute inset-0 bg-white opacity-0" />
+  // MatchIntro.jsx ke return statement mein ye change karein
+// MatchIntro.jsx
+// MatchIntro.jsx
+// MatchIntro.jsx
+return (
+  /* 'bg-slate-100' use kiya hai taaki background bright gray lage, na ki white. dark mode pe 'dark:bg-[#050816]' rakha hai. */
+  <div className="min-h-screen flex flex-col items-center justify-center py-20 bg-slate-100 dark:bg-[#050816] transition-colors duration-500 relative overflow-hidden">
+    
+    <div ref={flashRef} className="absolute inset-0 bg-white opacity-0 z-50 pointer-events-none" />
 
-      <div className="flex items-center gap-12">
-        <div ref={leftRef}>
-          <PlayerCard player={players.current} side="left" />
+    <div className="flex flex-col md:flex-row items-center justify-center gap-20 md:gap-32 z-10 w-full max-w-7xl px-10">
+      
+      {/* Left Player */}
+      <div ref={leftRef} className="flex-1 flex justify-end">
+        <PlayerCard player={players.current} side="left" />
+      </div>
+
+      {/* Center Section */}
+      <div className="flex flex-col items-center justify-center min-w-[300px]">
+        {/* VS Text: Iska color update kiya hai taaki slate-100 par halka sa dikhe. */}
+        <div
+          ref={vsRef}
+          className="text-7xl md:text-9xl font-black tracking-tighter text-slate-500 dark:text-white/10 italic absolute select-none"
+        >
+          VS
         </div>
 
-        <div className="flex flex-col items-center gap-4">
-          <div
-            ref={vsRef}
-            className="text-5xl font-bold tracking-widest text-white"
-          >
-            VS
-          </div>
-
+        <div className="relative h-40 flex items-center justify-center">
           {countNum !== null && (
-            <div ref={countRef} className="text-6xl font-bold">
+            /* Countdown: Light gray bg ke hisaab se thoda bold aur deep cyan. */
+            <div 
+              ref={countRef} 
+              className="text-8xl md:text-[12rem] font-black text-[#0891B2] dark:text-cyan-400 drop-shadow-md dark:drop-shadow-[0_0_30px_rgba(34,211,238,0.6)]"
+            >
               {countNum}
             </div>
           )}
 
           {showFight && (
-            <div ref={fightRef} className="text-6xl font-black text-red-500">
+            <div 
+              ref={fightRef} 
+              className="text-7xl md:text-9xl font-black text-red-600 dark:text-red-500 drop-shadow-md dark:drop-shadow-[0_0_40px_rgba(239,68,68,0.5)]"
+            >
               FIGHT!
             </div>
           )}
         </div>
+      </div>
 
-        <div ref={rightRef}>
-          <PlayerCard player={players.opponent} side="right" />
-        </div>
+      {/* Right Player */}
+      <div ref={rightRef} className="flex-1 flex justify-start">
+        <PlayerCard player={players.opponent} side="right" />
       </div>
     </div>
-  );
+  </div>
+);
 }

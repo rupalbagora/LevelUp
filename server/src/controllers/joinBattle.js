@@ -1,5 +1,6 @@
 import Battle from "../models/Battle.js";
 import Question from "../models/question.js";
+import { io } from "../../server.js";
 export const joinBattle = async (req, res) => {
   try {
     const { battleId } = req.params;
@@ -78,6 +79,20 @@ export const joinBattle = async (req, res) => {
         message: "Battle already joined by another user",
       });
     }
+
+    // 🔥 REAL-TIME EVENT
+   io.to(battleId.toString()).emit("battleStarted", {
+     battleId,
+     opponentId: req.user,
+     startTime: battle.startTime,
+     endTime: battle.endTime,
+     questionId: battle.questionId,
+   });
+
+   io.to(battleId.toString()).emit("timerSync", {
+     startTime: battle.startTime,
+     endTime: battle.endTime,
+   });
 
     res.json({
       message: "Joined battle successfully",
