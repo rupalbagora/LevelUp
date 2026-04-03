@@ -10,7 +10,7 @@ const server = http.createServer(app);
 // 2️⃣ Attach Socket.io
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: (origin, callback) => callback(null, true),
     credentials: true,
   },
 });

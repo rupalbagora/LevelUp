@@ -41,8 +41,16 @@ if (!code || !language) {
 
     for (const test of publicTests) {
       const result = await executeCode({ language, code, input: test.input });
+      function normalize(output) {
+        try {
+          return JSON.stringify(JSON.parse(output));
+        } catch {
+          return output.trim().replace(/\s+/g, "");
+        }
+      }
       const passed =
-        result.success && result.output?.trim() === test.output.trim();
+        result.success && normalize(result.output) === normalize(test.output);
+        // result.success && result.output?.trim() === test.output.trim();
       testResults.push({
         input: test.input,
         expected: test.output,
