@@ -8,7 +8,7 @@ if (!topic || !difficulty) {
 }
 
     const battle = await Battle.create({
-      topic, 
+      topic,
       difficulty,
       creatorId: req.user,
     });
