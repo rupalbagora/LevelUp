@@ -16,5 +16,4 @@ router.post("/:battleId/submit",protect,submitCode);
 router.post("/:battleId/run", protect, runCode);
 router.post("/get-hint", protect, getAIHint);
 export default router;
-
-
+ 
