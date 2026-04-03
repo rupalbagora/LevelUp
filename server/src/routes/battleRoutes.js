@@ -12,3 +12,4 @@ router.get("/:battleId/question", protect, getBattleQuestion);
 router.post("/:battleId/submit",protect,submitCode);
 router.post("/:battleId/run", protect, runCode);
 export default router;
+ 
