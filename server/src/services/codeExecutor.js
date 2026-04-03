@@ -20,6 +20,8 @@ export async function executeCode({ language, code, input = "" }) {
       output: response.data.run.output?.trim(),
       stderr: response.data.run.stderr,
       success: response.data.run.code === 0,
+      runtime:response.data.run.time||0,
+      memory:response.data.run.memory||0,
     };
   } catch (error) {
     console.error("PISTON ERROR:", error.response?.data || error.message);
@@ -38,5 +40,8 @@ function getVersion(language) {
     javascript: "18.15.0",
     java: "15.0.2",
   };
+  if (!map[language]) {
+    throw new Error("Unsupported language");
+  }
   return map[language];
 }

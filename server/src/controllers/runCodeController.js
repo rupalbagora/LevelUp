@@ -1,18 +1,26 @@
 import Battle from "../models/Battle.js";
 import Question from "../models/question.js";
 import { executeCode } from "../services/codeExecutor.js";
+import {io} from "../../server.js"
 export const runCode = async (req, res) => {
   try {
     const { battleId } = req.params;
     const { code, language } = req.body;
-
+if (!code || !language) {
+  return res.status(400).json({ message: "Code and language required" });
+}
     const battle = await Battle.findById(battleId);
+    io.to(battleId.toString()).emit("userRunningCode", {
+      userId: req.user,
+    });
     if (!battle) return res.status(404).json({ message: "Battle not found" });
-    
+    if (battle.status !== "ongoing") {
+      return res.status(400).json({ message: "Battle not active" });
+    }
     // ✅ ADD: participant check
     if (
-      battle.creatorId.toString() !== req.user &&
-      battle.opponentId.toString() !== req.user
+      !battle.creatorId.equals(req.user) &&
+      !(battle.opponentId && battle.opponentId.equals(req.user))
     ) {
       return res.status(403).json({ message: "Access denied" });
     }
@@ -33,8 +41,16 @@ export const runCode = async (req, res) => {
 
     for (const test of publicTests) {
       const result = await executeCode({ language, code, input: test.input });
+      function normalize(output) {
+        try {
+          return JSON.stringify(JSON.parse(output));
+        } catch {
+          return output.trim().replace(/\s+/g, "");
+        }
+      }
       const passed =
-        result.success && result.output?.trim() === test.output.trim();
+        result.success && normalize(result.output) === normalize(test.output);
+        // result.success && result.output?.trim() === test.output.trim();
       testResults.push({
         input: test.input,
         expected: test.output,

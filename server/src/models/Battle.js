@@ -45,6 +45,10 @@ const battleSchema = new mongoose.Schema(
       opponent: { type: Number, default: 0 }
     },
 
+timeoutScheduled: {
+  type: Boolean,
+  default: false,
+},
     startTime: Date,
     endTime: Date,
     extendedEndTime: Date,

@@ -6,7 +6,7 @@ import jwt from "jsonwebtoken";
 export const registerUser = async (req, res) => {
   try {
     const { username, email, password } = req.body;
-    console.log(req.body);
+    // console.log(req.body);
     const userExists = await User.findOne({ email });
     if (userExists) {
       return res.status(400).json({ message: "User already exists" });
@@ -15,14 +15,14 @@ export const registerUser = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    console.log(username, email, password);
+    // console.log(username, email, password);
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await User.create({
       username,
       email,
       password: hashedPassword,
     });
-    console.log(user)
+    // console.log(user)
     res
       .status(201)
       .json({ success: true, message: "User registered successfully" });
@@ -36,13 +36,17 @@ export const registerUser = async (req, res) => {
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
+    console.log(email,password,"login")
+    if (!email || !password) {
+      return res.status(400).json({ message: "All fields required" });
+    }
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      return res.status(400).json({ message: "User not found" });
     }
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      return res.status(400).json({ message: "Invalid Password" });
     }
     const token = jwt.sign(
       { id: user._id, email: user.email },

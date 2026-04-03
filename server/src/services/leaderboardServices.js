@@ -56,7 +56,7 @@ export const updateLeaderboardAfterBattle = async (battleId) => {
 
   // Update total battles for both players
   await User.updateMany(
-    { _id: { $in: [creatorId, opponentId] } },
+    { _id: { $in: [creatorId, opponentId].filter(Boolean) } },
     { $inc: { totalBattles: 1 } },
   );
 
