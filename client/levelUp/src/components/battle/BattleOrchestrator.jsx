@@ -1,7 +1,7 @@
 import { useBattleSocket } from "../../hooks/useBattleSocket";
 import MatchIntro from "./MatchIntro/MatchIntro";
 import BattleArena from "./BattleArena/BattleArena";
-import ResultsScreen from "./Results/ResultsScreen";
+import ResultsScreen from "./Results/VictoryPage";
 
 export default function BattleOrchestrator({ battleId, userId }) {
   const { battleState, startBattle, submitSolution, updateTypingStatus } =
