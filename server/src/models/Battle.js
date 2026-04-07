@@ -29,6 +29,10 @@ const battleSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Question",
     },
+    hintsUsed: {
+  creator: { type: Number, default: 0 },
+  opponent: { type: Number, default: 0 },
+},
 
     status: {
       type: String,

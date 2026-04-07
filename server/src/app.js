@@ -27,7 +27,6 @@ app.get("/test", (req, res) => {
 app.use("/api/auth",authRoutes);
 app.use("/api/battle", battleRoutes);
 app.use("/api/leaderboard", leaderboardRoutes);
-
 app.use("/api", executeRoutes);
 connectDB();
 
