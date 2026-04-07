@@ -7,7 +7,6 @@ import CTASection from "./CTASection";
 import CodeEditorSection from "./codesection";
 import Workingsection from "./Workingsection";
 
-import BattleArena from '../Dashboard/BattleArena';
 
 const Home = () => {
   return (

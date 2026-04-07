@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Swords, XCircle, Zap, ShieldAlert } from "lucide-react";
-import { joinBattleAPI, acceptBattleAPI, terminateBattleAPI } from "../../../services/battleService";
+import { joinBattleAPI} from "../../../services/battleService";
 
 const OpponentMatchIntro = () => {
   const { battleId } = useParams();
