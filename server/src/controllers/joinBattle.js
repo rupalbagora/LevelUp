@@ -15,6 +15,9 @@ export const joinBattle = async (req, res) => {
       return res.status(400).json({ message: "Battle already started" });
     }
 
+    console.log("Creator:", existingBattle.creatorId.toString());
+    console.log("Current user:", req.user.toString());
+
     if (existingBattle.creatorId.equals(req.user)) {
       return res.status(400).json({ message: "Cannot join your own battle" });
     }
@@ -81,18 +84,18 @@ export const joinBattle = async (req, res) => {
     }
 
     // 🔥 REAL-TIME EVENT
-   io.to(battleId.toString()).emit("battleStarted", {
-     battleId,
-     opponentId: req.user,
-     startTime: battle.startTime,
-     endTime: battle.endTime,
-     questionId: battle.questionId,
-   });
+  //  io.to(battleId.toString()).emit("battleStarted", {
+  //    battleId,
+  //    opponentId: req.user,
+  //    startTime: battle.startTime,
+  //    endTime: battle.endTime,
+  //    questionId: battle.questionId,
+  //  });
 
-   io.to(battleId.toString()).emit("timerSync", {
-     startTime: battle.startTime,
-     endTime: battle.endTime,
-   });
+  //  io.to(battleId.toString()).emit("timerSync", {
+  //    startTime: battle.startTime,
+  //    endTime: battle.endTime,
+  //  });
 
     res.json({
       message: "Joined battle successfully",
@@ -120,7 +123,7 @@ export const getBattleQuestion = async (req, res) => {
       // battle.creatorId.toString() !== req.user &&
       // battle.opponentId.toString() !== req.user
       !battle.creatorId.equals(req.user) &&
-      !battle.opponentId.equals(req.user)
+      !(battle.opponentId && battle.opponentId.equals(req.user))
     ) {
       return res.status(403).json({ message: "Access denied" });
     }

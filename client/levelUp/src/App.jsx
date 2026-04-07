@@ -100,14 +100,22 @@ function App() {
 
   {/* 1. PEHLE: Opponent ka Intro Page (Accept/Decline) */}
   {/* Link copy karte waqt dhyan rakhna ki path '/challenge/id' ho */}
-  <Route 
+  {/* <Route 
     path="/challenge/:battleId" 
     element={
       <CheckAuth isAuthenticated={isAuthenticated}>
         <OpponentMatchIntro />
       </CheckAuth>
     } 
-  />
+  /> */}
+  {/* <Route 
+    path="/challenge/:battleId" 
+    element={
+      <CheckAuth isAuthenticated={isAuthenticated}>
+        <OpponentMatchIntro />
+      </CheckAuth>
+    } 
+  /> */}
 
   {/* 2. BAAD MEIN: Actual Code Editor / FIGHT! Screen */}
   {/* Yahan par wo image wala 'FIGHT!' animation aayega */}

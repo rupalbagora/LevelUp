@@ -10,7 +10,6 @@ import VictoryResultScreen from '../battle/Results/VictoryPage';
 import LossPage from '../battle/Results/LossPage';
 
 
-import BattleArena from '../Dashboard/BattleArena';
 
 const Home = () => {
   return (

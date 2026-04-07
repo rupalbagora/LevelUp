@@ -1,175 +1,207 @@
+
+
 import { useState, useEffect, useRef } from "react";
+import { io } from "socket.io-client";
+import { getBattleQuestion } from "../services/battleService";
 
-/*
-  useBattleSocket
-
-  Manages:
-  - battle state
-  - opponent progress
-  - result
-  - communication with socket (later)
-
-  For now it runs in MOCK mode so the UI works.
-*/
-
-export function useBattleSocket(battleId, userId) {
+export function useBattleSocket(battleId, userId, onSocketReady) {
+  // ↑ accept a callback from orchestrator
+  // ↑ accept a callback from orchestrator
   const socketRef = useRef(null);
   const codeRef = useRef("");
+  const onReadyCalled = useRef(false);
 
   const [battleState, setBattleState] = useState({
-    phase: "intro", // intro | battle | results
+    phase: "waiting",
     problem: null,
     players: null,
     opponentProgress: 0,
     opponentStatus: "coding",
     result: null,
-    isLoading: true,
+    isLoading: false,
   });
 
-  /* MOCK DATA LOAD */
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setBattleState((prev) => ({
-        ...prev,
+    if (!battleId) return;
+let mounted = true;
+    const socket = io("http://localhost:5000", {
+      withCredentials: true,
+      transports: ["websocket", "polling"],
+    });
 
-        problem: {
-          title: "Binary Search",
-          description:
-            "Implement binary search to find a target element in a sorted array.",
-          difficulty: "Medium",
-          topic: "Binary Search",
-          examples: [
-            {
-              input: "[1,3,5,7,9], target=5",
-              output: "2",
-            },
-          ],
-          constraintsList: ["1 ≤ arr.length ≤ 10⁴", "Array sorted ascending"],
-        },
+    socketRef.current = socket;
 
-        players: {
-          current: {
-            userId: "u1",
-            username: "rupal",
-            rank: "Intermediate",
-            totalWins: 24,
-            totalBattles: 41,
+    // socket.on("connect", () => {
+    //   console.log("✅ Socket connected:", socket.id);
+    //   socket.emit("joinBattleRoom", battleId);
+
+    //   // Fire the callback once so orchestrator can call joinBattleAPI
+    //   if (!onReadyCalled.current) {
+    //     onReadyCalled.current = true;
+    //     onSocketReady?.();
+    //   }
+    // });
+
+    socket.on("connect", () => {
+      console.log("✅ Socket connected:", socket.id);
+      socket.emit("joinBattleRoom", battleId);
+
+      if (!onReadyCalled.current) {
+        onReadyCalled.current = true;
+        onSocketReady?.();
+      }
+
+      // ✅ Creator arrives after battle already started — fetch question directly
+      // Check if battle is already ongoing by trying to load the question
+      getBattleQuestion(battleId)
+        .then((question) => {
+          if (!mounted) return;
+          setBattleState((prev) => {
+            // Only update if we don't already have a problem loaded
+            if (prev.problem) return prev;
+            return {
+              ...prev,
+              phase: "intro",
+              isLoading: false,
+              problem: {
+                title: question.title,
+                description: question.description,
+                difficulty: question.difficulty,
+                topic: question.topic,
+                constraints: question.constraints,
+                sampleInput: question.sampleInput,
+                sampleOutput: question.sampleOutput,
+                examples:
+                  question.testCases?.public?.map((tc) => ({
+                    input: tc.input,
+                    output: tc.output,
+                  })) || [],
+                constraintsList: question.constraints
+                  ? [question.constraints]
+                  : [],
+              },
+            };
+          });
+        })
+        .catch(() => {
+          // Question not assigned yet (battle still waiting) — that's fine
+          // battleStarted event will handle it when opponent joins
+        });
+    });
+    socket.off("battleStarted");
+
+    socket.on("battleStarted", async (data) => {
+      console.log("🔥 battleStarted received:", data);
+
+       if (!mounted) return; 
+
+      try {
+        const question = await getBattleQuestion(battleId);
+        const isCreator = data.players.creator.id === userId;
+        setBattleState((prev) => ({
+          ...prev,
+          phase: "intro",
+          isLoading: false,
+          problem: {
+            title: question.title,
+            description: question.description,
+            difficulty: question.difficulty,
+            topic: question.topic,
+            constraints: question.constraints,
+            sampleInput: question.sampleInput,
+            sampleOutput: question.sampleOutput,
+            examples:
+              question.testCases?.public?.map((tc) => ({
+                input: tc.input,
+                output: tc.output,
+              })) || [],
+            constraintsList: question.constraints ? [question.constraints] : [],
           },
 
-          opponent: {
-            userId: "u2",
-            username: "CodeNinja",
-            rank: "Advanced",
-            totalWins: 57,
-            totalBattles: 89,
+          players: {
+            current: isCreator ? data.players.creator : data.players.opponent,
+            
+
+            opponent: isCreator ? data.players.opponent : data.players.creator,
           },
-        },
+          startTime: data.startTime,
+          endTime: data.endTime,
+        }));
+      } catch (err) {
+        console.error("Failed to load question:", err);
+      }
+    });
 
-        isLoading: false,
-      }));
-    }, 800);
-
-    return () => clearTimeout(timer);
-  }, [battleId, userId]);
-
-  /* MOCK OPPONENT PROGRESS */
-  useEffect(() => {
-    if (battleState.phase !== "battle") return;
-
-    let progress = 5;
-
-    const interval = setInterval(() => {
-      progress = Math.min(progress + Math.random() * 6, 98);
-
+    socket.on("timerSync", (data) => {
       setBattleState((prev) => ({
         ...prev,
-        opponentProgress: Math.round(progress),
-        opponentStatus: progress > 80 ? "reviewing" : "typing",
+        startTime: data.startTime,
+        endTime: data.endTime,
       }));
-    }, 2500);
+    });
 
-    return () => clearInterval(interval);
-  }, [battleState.phase]);
+    socket.on("submissionUpdate", (data) => {
+      if (data.userId !== userId) {
+        setBattleState((prev) => ({
+          ...prev,
+          opponentStatus: data.isCorrect ? "passed" : "failed",
+        }));
+      }
+    });
 
-  /* START BATTLE */
-  const startBattle = () => {
-    setBattleState((prev) => ({
-      ...prev,
-      phase: "battle",
-    }));
-  };
-
-  /* SUBMIT SOLUTION */
-  const submitSolution = async(code, language) => {
-    codeRef.current = code;
-
-    // later this will emit socket event
-    // socket.emit("submit_solution")
-
-    // setTimeout(() => {
-    //   setBattleState((prev) => ({
-    //     ...prev,
-    //     phase: "results",
-
-    //     result: {
-    //       winnerId: prev.players.current.userId,
-    //       winnerUsername: prev.players.current.username,
-    //       isWinner: true,
-    //       timeTaken: 287,
-    //       correct: true,
-    //     },
-    //   }));
-    // }, 1500);
-    
-    try {
-      const res = await fetch("/api/execute", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ code, language }),
-      });
-
-      const data = await res.json();
-
-      // 🔍 check result
-      const expectedOutput = "2"; // later from problem
-      const isCorrect = data.output?.trim() === expectedOutput;
-
+    socket.on("battleEnded", (data) => {
       setBattleState((prev) => ({
         ...prev,
         phase: "results",
         result: {
-          winnerId: isCorrect
-            ? prev.players.current.userId
-            : prev.players.opponent.userId,
-
-          winnerUsername: isCorrect
-            ? prev.players.current.username
-            : prev.players.opponent.username,
-
-          isWinner: isCorrect,
-          timeTaken: 287,
-          correct: isCorrect,
+          winnerId: data.winnerId,
+          isWinner: data.winnerId?.toString() === userId?.toString(),
         },
       }));
+    });
+
+    socket.on("extraTime", (data) => {
+      setBattleState((prev) => ({
+        ...prev,
+        endTime: data.extendedEndTime,
+      }));
+    });
+
+    socket.on("connect_error", (err) => {
+      console.error("Socket connect error:", err.message);
+    });
+
+    return () => {
+      mounted = false;
+      socket.disconnect();
+      onReadyCalled.current = false;
+    };
+  }, [battleId, userId]);
+
+  const startBattle = () => {
+    setBattleState((prev) => ({ ...prev, phase: "battle" }));
+  };
+
+  const submitSolution = async (code, language) => {
+    codeRef.current = code;
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`/api/battle/${battleId}/submit`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ code, language }),
+      });
+      const data = await res.json();
+      console.log("Submit result:", data);
     } catch (error) {
-      console.error("Execution error:", error);
+      console.error("Submit error:", error);
     }
   };
 
-  /* UPDATE TYPING STATUS */
-  const updateTypingStatus = (code) => {
-    const progress = Math.min(Math.floor(code.length / 8), 99);
+  const updateTypingStatus = () => {};
 
-    // later socket emit
-    // socket.emit("code_update")
-  };
-
-  return {
-    battleState,
-    startBattle,
-    submitSolution,
-    updateTypingStatus,
-  };
+  return { battleState, startBattle, submitSolution, updateTypingStatus };
 }

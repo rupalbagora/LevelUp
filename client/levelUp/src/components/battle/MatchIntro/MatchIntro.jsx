@@ -65,14 +65,17 @@ export default function MatchIntro({ players, onComplete }) {
 return (
   /* 'bg-slate-100' use kiya hai taaki background bright gray lage, na ki white. dark mode pe 'dark:bg-[#050816]' rakha hai. */
   <div className="min-h-screen flex flex-col items-center justify-center py-20 bg-slate-100 dark:bg-[#050816] transition-colors duration-500 relative overflow-hidden">
-    
-    <div ref={flashRef} className="absolute inset-0 bg-white opacity-0 z-50 pointer-events-none" />
+    <div
+      ref={flashRef}
+      className="absolute inset-0 bg-white opacity-0 z-50 pointer-events-none"
+    />
 
     <div className="flex flex-col md:flex-row items-center justify-center gap-20 md:gap-32 z-10 w-full max-w-7xl px-10">
-      
       {/* Left Player */}
       <div ref={leftRef} className="flex-1 flex justify-end">
-        <PlayerCard player={players.current} side="left" />
+        {players?.current && (
+          <PlayerCard player={players.current} side="left" />
+        )}
       </div>
 
       {/* Center Section */}
@@ -88,8 +91,8 @@ return (
         <div className="relative h-40 flex items-center justify-center">
           {countNum !== null && (
             /* Countdown: Light gray bg ke hisaab se thoda bold aur deep cyan. */
-            <div 
-              ref={countRef} 
+            <div
+              ref={countRef}
               className="text-8xl md:text-[12rem] font-black text-[#0891B2] dark:text-cyan-400 drop-shadow-md dark:drop-shadow-[0_0_30px_rgba(34,211,238,0.6)]"
             >
               {countNum}
@@ -97,8 +100,8 @@ return (
           )}
 
           {showFight && (
-            <div 
-              ref={fightRef} 
+            <div
+              ref={fightRef}
               className="text-7xl md:text-9xl font-black text-red-600 dark:text-red-500 drop-shadow-md dark:drop-shadow-[0_0_40px_rgba(239,68,68,0.5)]"
             >
               FIGHT!

@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-
 const battleSchema = new mongoose.Schema(
   {
     topic: {
@@ -20,6 +19,7 @@ const battleSchema = new mongoose.Schema(
       ref: "User",
       default: null,
     },
+
     winnerId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -29,6 +29,11 @@ const battleSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Question",
     },
+    hintsUsed: {
+  creator: { type: Number, default: 0 },
+  opponent: { type: Number, default: 0 },
+},
+
     status: {
       type: String,
       enum: ["waiting", "ongoing", "completed"],
@@ -38,13 +43,6 @@ const battleSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
-
-    // --- AI HINT TRACKING ---
-    hintsUsed: {
-      creator: { type: Number, default: 0 },
-      opponent: { type: Number, default: 0 }
-    },
-
 timeoutScheduled: {
   type: Boolean,
   default: false,
@@ -53,14 +51,7 @@ timeoutScheduled: {
     endTime: Date,
     extendedEndTime: Date,
     firstSubmissionTime: Date,
-    
-    // Manual createdAt field agar timestamps:true ke alawa chahiye
-    createdAt: { 
-      type: Date, 
-      default: Date.now 
-    }
   },
-  { timestamps: true }
+  { timestamps: true },
 );
-
 export default mongoose.model("Battle", battleSchema);
