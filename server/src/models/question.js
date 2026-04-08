@@ -8,11 +8,12 @@ const questionSchema = new mongoose.Schema({
     enum: [
       "Arrays",
       "Strings",
-      "LinkedList",
+      "Linked Lists",
       "Recursion",
-      "Trees",
-      "Graphs",
-      "DP",
+      "Trees & Graphs",
+      "Dynamic Programming",
+      "Binary Search",
+      "Sorting Algorithms",
     ],
     required: true,
   },
@@ -22,7 +23,17 @@ const questionSchema = new mongoose.Schema({
     enum: ["Easy", "Medium", "Hard"],
     required: true,
   },
+  functionName: {
+    type: String,
+    required: true,
+  },
 
+  parameters: {
+    type: [String],
+    required: true,
+  },
+  paramTypes: [String], // NEW FIELD
+  returnType: { type: String, default: "number" },
   constraints: String,
 
   sampleInput: String,

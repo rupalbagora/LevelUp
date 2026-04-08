@@ -129,7 +129,7 @@ export const getBattleQuestion = async (req, res) => {
     }
    
 const question = battle.questionId;
-
+console.log("🔥 QUESTION FROM DB:", question)
 res.json({
   _id: question._id,
   title: question.title,
@@ -139,6 +139,10 @@ res.json({
   constraints: question.constraints,
   sampleInput: question.sampleInput,
   sampleOutput: question.sampleOutput,
+  functionName: question.functionName,
+  parameters: question.parameters,
+  paramTypes: question.paramTypes,
+  returnType: question.returnType,
   testCases: {
     public: question.testCases.public,
   },

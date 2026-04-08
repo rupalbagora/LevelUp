@@ -41,7 +41,12 @@ export const createAndEvaluate = async ({
   const testResults = [];
 
   for (const test of hiddenTests) {
-    const result = await executeCode({ language, code, input: test.input });
+    const result = await executeCode({
+      language,
+      code,
+      input: test.input,
+      question,
+    });
 
     if (!result.success) {
       allPassed = false;
@@ -50,7 +55,14 @@ export const createAndEvaluate = async ({
 
     totalRuntime += result.runtime || 0;
     totalMemory += result.memory || 0;
-const normalize = (s) => s.trim().replace(/\s+/g, "");
+// const normalize = (s) => s.trim().replace(/\s+/g, "");
+const normalize = (s) => {
+  try {
+    return JSON.stringify(JSON.parse(s));
+  } catch {
+    return String(s).trim().replace(/\s+/g, "");
+  }
+};
     const passed = normalize(result.output) === normalize(test.output);
 
     testResults.push({
