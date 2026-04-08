@@ -11,12 +11,13 @@ import {
 } from "../../../utils/battleHelpers";
 
 export default function CodeEditor({
-  language = "python3",
+  language = "python",
   onLanguageChange,
   onChange,
   onMount,
   submissionStatus = null,
   username = "You",
+  value = "",
 }) {
   const wrapRef = useRef(null);
   const debounceTimerRef = useRef(null);
@@ -31,20 +32,34 @@ export default function CodeEditor({
     const checkTheme = () => {
       setIsDarkMode(document.documentElement.classList.contains("dark"));
     };
-    
+
     checkTheme();
     const observer = new MutationObserver(checkTheme);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-    
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
     return () => observer.disconnect();
   }, []);
 
   const [codeMap, setCodeMap] = useState(() =>
     Object.fromEntries(
-      LANGUAGE_OPTIONS.map((opt) => [opt.value, STARTER_CODE[opt.value] || ""])
-    )
+      LANGUAGE_OPTIONS.map((opt) => [opt.value, ""]), // 🔥 EMPTY
+    ),
   );
+useEffect(() => {
+  if (!value) return;
 
+  setCodeMap((prev) => ({ ...prev, [language]: value }));
+
+  if (monacoEditorRef.current) {
+    const current = monacoEditorRef.current.getValue();
+    if (current !== value) {
+      monacoEditorRef.current.setValue(value);
+    }
+  }
+}, [value, language]);
   const [EditorComponent, setEditorComponent] = useState(null);
   const [editorLoaded, setEditorLoaded] = useState(false);
   const [typingStatus, setTypingStatus] = useState("Saved");
@@ -92,7 +107,7 @@ export default function CodeEditor({
         onChange?.(newVal);
       }, 500);
     },
-    [language, onChange]
+    [language, onChange],
   );
 
   function handleEditorMount(editor) {
@@ -124,20 +139,25 @@ export default function CodeEditor({
   const monacoLang = MONACO_LANGUAGE_MAP[language] || language;
 
   return (
-    <div ref={wrapRef} className="flex flex-col h-full bg-white dark:bg-[#1e1e1e]">
+    <div
+      ref={wrapRef}
+      className="flex flex-col h-full bg-white dark:bg-[#1e1e1e]"
+    >
       {/* Toolbar - Dynamic Colors */}
       <div className="flex items-center justify-between px-3 h-10 bg-slate-50 dark:bg-[#252526] border-b border-slate-200 dark:border-[#333] flex-shrink-0 gap-2">
         {/* Left: user + typing status */}
         <div className="flex items-center gap-2 min-w-0">
           <span className="w-2 h-2 bg-blue-500 rounded-full shadow-sm shadow-blue-500/50 flex-shrink-0" />
-          <span className="text-slate-600 dark:text-slate-300 text-xs font-medium truncate">{username}</span>
+          <span className="text-slate-600 dark:text-slate-300 text-xs font-medium truncate">
+            {username}
+          </span>
           <span
             className={`text-[10px] font-mono ml-1 flex-shrink-0 ${
               typingStatus === "Typing..."
                 ? "text-yellow-600 dark:text-yellow-400"
                 : typingStatus === "Reset"
-                ? "text-[#ffa116]"
-                : "text-slate-400 dark:text-slate-500"
+                  ? "text-[#ffa116]"
+                  : "text-slate-400 dark:text-slate-500"
             }`}
           >
             {typingStatus}

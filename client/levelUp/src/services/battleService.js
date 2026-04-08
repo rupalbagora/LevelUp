@@ -41,6 +41,16 @@ export const getBattleQuestion = async (battleId) => {
   );
   return response.data;
 };
+
+export const runCodeAPI = async (battleId, code, language, input) => {
+  const res = await axios.post(
+    `http://localhost:5000/api/battle/${battleId}/run`,
+    { code, language, input },
+    { withCredentials: true },
+  );
+  return res.data;
+};
+
 // export const getBattleQuestion = async (battleId) => {
 //   const token = localStorage.getItem("token");
 //   const res = await fetch(`/api/battle/${battleId}/question`, {

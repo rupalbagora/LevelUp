@@ -3,6 +3,7 @@ import { Maximize2, Minimize2 } from "lucide-react";
 import { animateArenaIn } from "../../../utils/gsapAnimations";
 import { useBattleTimer } from "../../../hooks/useBattleTimer";
 import { usePanelResize, useVerticalResize } from "../../../hooks/usePanelResize";
+import { runCodeAPI } from "../../../services/battleService";
 
 
 import BattleHeader from "./BattleHeader";
@@ -11,6 +12,7 @@ import CodeEditor from "./CodeEditor";
 import ConsolePanel from "./ConsolePanel";
 import AIHintPanel from "./AIHintPanel";
 import OpponentPanel from "./OpponentPanel";
+import { generateStarterCode } from "../../../utils/starterCodeGenerator";
 
 // Default column widths (%)
 const DEFAULT_COLS = [30, 45, 25];
@@ -92,6 +94,7 @@ function PanelMaximizeBtn({ isMax, onToggle }) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function BattleArena({
+  battleId,
   problem,
   currentUser,
   opponent,
@@ -105,13 +108,16 @@ export default function BattleArena({
   const editorRef = useRef(null);
 
   const [code, setCode] = useState("");
-  const [language, setLanguage] = useState("python3");
+  const [language, setLanguage] = useState("python");
   const [submissionStatus, setSubmissionStatus] = useState(null);
   const [hintsRemaining, setHintsRemaining] = useState(3);
   const [testResults, setTestResults] = useState([]);
 
   // Which panel is maximized: null | "left" | "center" | "right"
   const [maximized, setMaximized] = useState(null);
+
+
+  
 
   const timer = useBattleTimer(duration, { onExpire: () => handleTimerExpire() });
 
@@ -124,6 +130,14 @@ export default function BattleArena({
   useEffect(() => {
     if (arenaRef.current) animateArenaIn(arenaRef.current);
   }, []);
+useEffect(() => {
+  if (!problem) return;
+console.log("FINAL PROBLEM:", problem);
+  const starter = generateStarterCode(problem, language);
+  console.log("Generated starter:", starter);
+  setCode(starter);
+  
+}, [problem, language]);
 
   const handleCodeChange = useCallback(
     (newCode) => {
@@ -151,18 +165,48 @@ export default function BattleArena({
     setTimeout(() => setSubmissionStatus("correct"), 1500);
   }
 
-  function handleRun(testCase) {
+  async function handleRun(testCase) {
     if (!code.trim()) return;
-    setTimeout(() => {
-      setTestResults((prev) => {
-        const existing = prev.filter((r) => r.caseId !== testCase.id);
-        return [
-          ...existing,
-          { caseId: testCase.id, passed: Math.random() > 0.4, actual: testCase.expected },
-        ];
-      });
-    }, 800);
+
+    try {
+      const inputString = testCase?.inputs
+        ? Object.values(testCase.inputs).join("\n")
+        : "";
+      const res = await runCodeAPI(
+        battleId, // 👈 use battleId if needed
+        code,
+        language,
+        inputString,
+      );
+
+      console.log("Run API result:", res);
+
+      // 👇 convert backend response → UI format
+      const results = res.testResults.map((t, index) => ({
+        caseId: testCase.id,
+        // caseId: index + 1,
+        passed: t.passed,
+        actual: t.actual,
+      }));
+
+      setTestResults(results);
+    } catch (err) {
+      console.error("Run error:", err);
+    }
   }
+
+  // function handleRun(testCase) {
+  //   if (!code.trim()) return;
+  //   setTimeout(() => {
+  //     setTestResults((prev) => {
+  //       const existing = prev.filter((r) => r.caseId !== testCase.id);
+  //       return [
+  //         ...existing,
+  //         { caseId: testCase.id, passed: Math.random() > 0.4, actual: testCase.expected },
+  //       ];
+  //     });
+  //   }, 800);
+  // }
 
   function handleHintUsed() {
     setHintsRemaining((h) => Math.max(0, h - 1));
@@ -226,17 +270,21 @@ export default function BattleArena({
       />
 
       {/* 3-panel grid row */}
-      <div
-        id="battle-arena-grid"
-        className="flex flex-1 overflow-hidden"
-      >
-
+      <div id="battle-arena-grid" className="flex flex-1 overflow-hidden">
         {/* ── LEFT: Problem Statement ── */}
-        <div style={getColStyle("left")} className="border-r border-slate-200 dark:border-[#3a3a3a]">
+        <div
+          style={getColStyle("left")}
+          className="border-r border-slate-200 dark:border-[#3a3a3a]"
+        >
           {/* Panel header bar */}
           <div className="flex items-center justify-between px-3 py-1.5 border-b border-slate-200 dark:border-[#3a3a3a] bg-slate-50 dark:bg-[#282828] flex-shrink-0">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Problem</span>
-            <PanelMaximizeBtn isMax={maximized === "left"} onToggle={() => toggleMax("left")} />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
+              Problem
+            </span>
+            <PanelMaximizeBtn
+              isMax={maximized === "left"}
+              onToggle={() => toggleMax("left")}
+            />
           </div>
           <div className="flex-1 overflow-hidden min-h-0">
             <ProblemStatement problem={problem} />
@@ -247,15 +295,27 @@ export default function BattleArena({
         {!maximized && <DragHandle onMouseDown={(e) => startColDrag(0, e)} />}
 
         {/* ── CENTER: Editor + Console ── */}
-        <div id="center-panel" style={getColStyle("center")} className="border-r border-slate-200 dark:border-[#3a3a3a]">
+        <div
+          id="center-panel"
+          style={getColStyle("center")}
+          className="border-r border-slate-200 dark:border-[#3a3a3a]"
+        >
           {/* Panel header bar */}
           <div className="flex items-center justify-between px-3 py-1.5 border-b border-slate-200 dark:border-[#3a3a3a] bg-slate-50 dark:bg-[#282828] flex-shrink-0">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">Code Editor</span>
-            <PanelMaximizeBtn isMax={maximized === "center"} onToggle={() => toggleMax("center")} />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
+              Code Editor
+            </span>
+            <PanelMaximizeBtn
+              isMax={maximized === "center"}
+              onToggle={() => toggleMax("center")}
+            />
           </div>
 
           {/* Editor */}
-          <div style={{ height: `${editorPercent}%`, minHeight: 0 }} className="overflow-hidden flex-shrink-0">
+          <div
+            style={{ height: `${editorPercent}%`, minHeight: 0 }}
+            className="overflow-hidden flex-shrink-0"
+          >
             <CodeEditor
               language={language}
               onLanguageChange={handleLanguageChange}
@@ -263,6 +323,7 @@ export default function BattleArena({
               onMount={(editor) => (editorRef.current = editor)}
               submissionStatus={submissionStatus}
               username={currentUser.username}
+              value={code}
             />
           </div>
 
@@ -270,7 +331,10 @@ export default function BattleArena({
           <HorizontalDragHandle onMouseDown={startRowDrag} />
 
           {/* Console */}
-          <div style={{ height: `${100 - editorPercent}%`, minHeight: 0 }} className="overflow-hidden flex-shrink-0">
+          <div
+            style={{ height: `${100 - editorPercent}%`, minHeight: 0 }}
+            className="overflow-hidden flex-shrink-0"
+          >
             <ConsolePanel
               code={code}
               onRun={handleRun}
@@ -287,17 +351,22 @@ export default function BattleArena({
         <div style={getColStyle("right")}>
           {/* Panel header bar */}
           <div className="flex items-center justify-between px-3 py-1.5 border-b border-slate-200 dark:border-[#3a3a3a] bg-slate-50 dark:bg-[#282828] flex-shrink-0">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">AI & Opponent</span>
-            <PanelMaximizeBtn isMax={maximized === "right"} onToggle={() => toggleMax("right")} />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
+              AI & Opponent
+            </span>
+            <PanelMaximizeBtn
+              isMax={maximized === "right"}
+              onToggle={() => toggleMax("right")}
+            />
           </div>
 
           <div className="flex-shrink-0">
             <AIHintPanel
-  code={code}
-  hintsRemaining={hintsRemaining}
-  onHintUsed={handleHintUsed}
-  problemStatement={problem.description || problem.topic} // Ye line add ki taaki AI ko context mile
-/>
+              code={code}
+              hintsRemaining={hintsRemaining}
+              onHintUsed={handleHintUsed}
+              problemStatement={problem.description || problem.topic} // Ye line add ki taaki AI ko context mile
+            />
           </div>
 
           <div className="flex-1 overflow-hidden min-h-0">
@@ -308,7 +377,6 @@ export default function BattleArena({
             />
           </div>
         </div>
-
       </div>
     </div>
   );

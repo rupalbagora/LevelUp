@@ -55,17 +55,22 @@ export default function BattleOrchestrator() {
       </div>
     );
   }
-
-  if (isLoading || !problem) {
-    return (
-      <div className="fixed inset-0 flex flex-col items-center justify-center gap-4 bg-[#050816]">
-        <div className="w-10 h-10 border-2 border-slate-700 border-t-blue-500 rounded-full animate-spin" />
-        <span className="text-sm tracking-widest uppercase text-slate-400 font-semibold">
-          Loading battle...
-        </span>
-      </div>
-    );
-  }
+console.log("DEBUG:", {
+    phase,
+    problem,
+    isLoading,
+    result,
+  });
+    if (isLoading || !problem) {
+      return (
+        <div className="fixed inset-0 flex flex-col items-center justify-center gap-4 bg-[#050816]">
+          <div className="w-10 h-10 border-2 border-slate-700 border-t-blue-500 rounded-full animate-spin" />
+          <span className="text-sm tracking-widest uppercase text-slate-400 font-semibold">
+            Loading battle...
+          </span>
+        </div>
+      );
+    }
 
   if (phase === "intro" && players) {
     return <MatchIntro players={players} onComplete={() => startBattle()} />;
@@ -74,6 +79,7 @@ export default function BattleOrchestrator() {
   if (phase === "battle" && !result) {
     return (
       <BattleArena
+        battleId={battleId}
         problem={problem}
         currentUser={players.current}
         opponent={players.opponent}

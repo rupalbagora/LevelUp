@@ -100,7 +100,7 @@ public:
 
 // Language selector options
 export const LANGUAGE_OPTIONS = [
-  { value: "python3", label: "Python3" },
+  { value: "python", label: "Python" },
   { value: "javascript", label: "JavaScript" },
   { value: "java", label: "Java" },
   { value: "cpp", label: "C++" },

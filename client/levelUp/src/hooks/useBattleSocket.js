@@ -64,13 +64,15 @@ let mounted = true;
               phase: "intro",
               isLoading: false,
               problem: {
-                title: question.title,
-                description: question.description,
-                difficulty: question.difficulty,
-                topic: question.topic,
-                constraints: question.constraints,
-                sampleInput: question.sampleInput,
-                sampleOutput: question.sampleOutput,
+                ...question,
+                // title: question.title,
+                // description: question.description,
+                // difficulty: question.difficulty,
+                // topic: question.topic,
+                // constraints: question.constraints,
+                // sampleInput: question.sampleInput,
+                // sampleOutput: question.sampleOutput,
+
                 examples:
                   question.testCases?.public?.map((tc) => ({
                     input: tc.input,
@@ -80,6 +82,7 @@ let mounted = true;
                   ? [question.constraints]
                   : [],
               },
+             
             };
           });
         })
@@ -103,13 +106,14 @@ let mounted = true;
           phase: "intro",
           isLoading: false,
           problem: {
-            title: question.title,
-            description: question.description,
-            difficulty: question.difficulty,
-            topic: question.topic,
-            constraints: question.constraints,
-            sampleInput: question.sampleInput,
-            sampleOutput: question.sampleOutput,
+            ...question,
+            // title: question.title,
+            // description: question.description,
+            // difficulty: question.difficulty,
+            // topic: question.topic,
+            // constraints: question.constraints,
+            // sampleInput: question.sampleInput,
+            // sampleOutput: question.sampleOutput,
             examples:
               question.testCases?.public?.map((tc) => ({
                 input: tc.input,
@@ -182,25 +186,53 @@ let mounted = true;
     setBattleState((prev) => ({ ...prev, phase: "battle" }));
   };
 
-  const submitSolution = async (code, language) => {
-    codeRef.current = code;
-    try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`/api/battle/${battleId}/submit`, {
+  // const submitSolution = async (code, language) => {
+  //   codeRef.current = code;
+  //   try {
+  //     const token = localStorage.getItem("token");
+  //     const res = await fetch(`/api/battle/${battleId}/submit`, {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //       body: JSON.stringify({ code, language }),
+  //     });
+  //     const data = await res.json();
+  //     console.log("Submit result:", data);
+  //   } catch (error) {
+  //     console.error("Submit error:", error);
+  //   }
+  // };
+const submitSolution = async (code, language) => {
+  try {
+    const res = await fetch(
+      `http://localhost:5000/api/battle/${battleId}/submit`,
+      {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
+        credentials: "include",
         body: JSON.stringify({ code, language }),
-      });
-      const data = await res.json();
-      console.log("Submit result:", data);
-    } catch (error) {
-      console.error("Submit error:", error);
-    }
-  };
+      },
+    );
 
+    const data = await res.json();
+
+    console.log("Submit result:", data);
+
+    // 👇 IMPORTANT: update UI
+    // if (data.isCorrect) {
+    //   socketRef.current.emit("correctSubmission", {
+    //     battleId,
+    //     userId,
+    //   });
+    // }
+  } catch (error) {
+    console.error("Submit error:", error);
+  }
+};
   const updateTypingStatus = () => {};
 
   return { battleState, startBattle, submitSolution, updateTypingStatus };
