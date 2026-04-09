@@ -22,6 +22,9 @@ const Dashboard = () => {
       navigate("/battle-setup"); // logged in → go straight to setup
     }
   };
+  const winRate = user?.totalBattles
+    ? Math.round((user.totalWins / user.totalBattles) * 100)
+    : 0;
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#050816] text-slate-900 dark:text-slate-100 font-sans overflow-x-hidden">
       <main className="max-w-7xl mx-auto px-6 pt-24 md:pt-28 pb-10 space-y-8">
@@ -37,7 +40,8 @@ const Dashboard = () => {
               Welcome back
             </p>
             <h1 className="text-2xl md:text-3xl font-black tracking-tight mb-1">
-              nehaprajapati140!
+              {user?.username}
+              {console.log(user?.username)}
             </h1>
             <p className="text-sm md:text-base text-white/80">
               Ready to start your next coding battle?
@@ -77,7 +81,7 @@ const Dashboard = () => {
                 <Target className="w-4 h-4" />
               </div>
             </div>
-            <p className="text-2xl font-bold">47</p>
+            <p className="text-2xl font-bold">{user?.totalBattles || 0}</p>
           </motion.div>
 
           <motion.div
@@ -94,7 +98,7 @@ const Dashboard = () => {
                 <Award className="w-4 h-4" />
               </div>
             </div>
-            <p className="text-2xl font-bold">68%</p>
+            <p className="text-2xl font-bold">{winRate}%</p>
           </motion.div>
 
           {/* Right Stats */}

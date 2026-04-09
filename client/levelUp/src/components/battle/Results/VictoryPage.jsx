@@ -314,10 +314,26 @@
 
 // export default VictoryResultScreen;
 
-export default function VictoryResultScreen() {
+export default function VictoryResultScreen({ result, players }) {
+  if (!result) return null;
+
+  let message;
+  let color;
+
+  if (result.status === "winner") {
+    message = "🏆 You Won!";
+    color = "text-green-600";
+  } else if (result.status === "defeated") {
+    message = "💀 You Lost";
+    color = "text-red-600";
+  } else {
+    message = "🤝 Draw";
+    color = "text-yellow-600";
+  }
+
   return (
-    <div className="flex items-center justify-center h-screen bg-green-100">
-      <h1 className="text-4xl font-bold text-green-600">🎉 You Won!</h1>
+    <div className="flex items-center justify-center h-screen bg-[#050816]">
+      <h1 className={`text-4xl font-bold ${color}`}>{message}</h1>
     </div>
   );
 }

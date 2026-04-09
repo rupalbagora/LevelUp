@@ -151,19 +151,39 @@ console.log("FINAL PROBLEM:", problem);
     setLanguage(lang);
   }
 
-  function handleSubmit() {
-    if (!code.trim()) return;
-    const payload = {
-      userId: currentUser.userId,
-      problemId: problem.id || "unknown",
-      code,
-      language,
-    };
-    console.log("[BattleArena] Submit payload:", payload);
-    setSubmissionStatus("pending");
-    onSubmit?.(code, language);
-    setTimeout(() => setSubmissionStatus("correct"), 1500);
+  // function handleSubmit() {
+  //   if (!code.trim()) return;
+  //   const payload = {
+  //     userId: currentUser.userId,
+  //     problemId: problem.id || "unknown",
+  //     code,
+  //     language,
+  //   };
+  //   console.log("[BattleArena] Submit payload:", payload);
+  //   setSubmissionStatus("pending");
+  //   onSubmit?.(code, language);
+  //   setTimeout(() => setSubmissionStatus("correct"), 1500);
+  // }
+
+async function handleSubmit() {
+  if (!code.trim()) return;
+
+  setSubmissionStatus("submitting");
+
+  try {
+    const res = await onSubmit?.(code, language);
+
+    if (res?.error) {
+      setSubmissionStatus("error");
+      return;
+    }
+
+    setSubmissionStatus("submitted"); // ✅ REAL submission
+  } catch (err) {
+    console.error(err);
+    setSubmissionStatus("error");
   }
+}
 
   async function handleRun(testCase) {
     if (!code.trim()) return;
@@ -258,6 +278,19 @@ console.log("FINAL PROBLEM:", problem);
       ref={arenaRef}
       className="flex flex-col h-screen bg-white dark:bg-[#1a1a1a] text-slate-900 dark:text-slate-200 overflow-hidden"
     >
+      {/* ✅ ADD HERE */}
+      {submissionStatus === "submitting" && (
+        <div className="fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg text-sm z-50">
+          ⏳ Submitting your solution...
+        </div>
+      )}
+
+      {submissionStatus === "submitted" && (
+        <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg text-sm z-50">
+          ✅ Submitted! Waiting for opponent (max 2 min)...
+        </div>
+      )}
+
       <BattleHeader
         topic={problem.topic}
         difficulty={problem.difficulty}
@@ -340,6 +373,7 @@ console.log("FINAL PROBLEM:", problem);
               onRun={handleRun}
               onSubmit={handleSubmit}
               testResults={testResults}
+              submissionStatus={submissionStatus}
             />
           </div>
         </div>

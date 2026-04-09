@@ -6,8 +6,8 @@ import StatsSection from "./StatsSection";
 import CTASection from "./CTASection";
 import CodeEditorSection from "./codesection";
 import Workingsection from "./Workingsection";
-import VictoryResultScreen from '../battle/Results/VictoryPage';
-import LossPage from '../battle/Results/LossPage';
+// import VictoryResultScreen from '../battle/Results/VictoryPage';
+// import LossPage from '../battle/Results/LossPage';
 
 
 
@@ -21,8 +21,8 @@ const Home = () => {
       <CodeEditorSection/>
       <Workingsection/>
       <CTASection />
-      <VictoryResultScreen />
-      <LossPage/>
+      {/* <VictoryResultScreen />
+      <LossPage/> */}
       
       
 

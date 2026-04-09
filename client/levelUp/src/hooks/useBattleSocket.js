@@ -153,17 +153,39 @@ let mounted = true;
       }
     });
 
-    socket.on("battleEnded", (data) => {
-      setBattleState((prev) => ({
-        ...prev,
-        phase: "results",
-        result: {
-          winnerId: data.winnerId,
-          isWinner: data.winnerId?.toString() === userId?.toString(),
-        },
-      }));
-    });
+    // socket.on("battleEnded", (data) => {
+    //   setBattleState((prev) => ({
+    //     ...prev,
+    //     phase: "results",
+    //     result: {
+    //       winnerId: data.winnerId,
+    //       isWinner: data.winnerId?.toString() === userId?.toString(),
+    //     },
+    //   }));
+    // });
+socket.on("battleEnded", (data) => {
+  const isWinner = data.winnerId?.toString() === userId?.toString();
 
+  let status;
+
+  if (!data.winnerId) {
+    status = "draw";
+  } else if (isWinner) {
+    status = "winner";
+  } else {
+    status = "defeated";
+  }
+
+  setBattleState((prev) => ({
+    ...prev,
+    phase: "results",
+    result: {
+      winnerId: data.winnerId,
+      isWinner,
+      status, // 👈 NEW
+    },
+  }));
+});
     socket.on("extraTime", (data) => {
       setBattleState((prev) => ({
         ...prev,
