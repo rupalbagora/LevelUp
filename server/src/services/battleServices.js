@@ -28,21 +28,41 @@ import { io } from "../../server.js"; // top of file
     console.log(submissions);
     let winnerId = null;
 
-   if (submissions.length === 1) {
-     winnerId = submissions[0].userId;
-   } else if (submissions.length === 2) {
-     const [a, b] = submissions;
+  //  if (submissions.length === 1) {
+  //    winnerId = submissions[0].userId;
+  //  } else if (submissions.length === 2) {
+  //    const [a, b] = submissions;
 
-     if (a.runtimeMs < b.runtimeMs) {
-       winnerId = a.userId;
-     } else if (b.runtimeMs < a.runtimeMs) {
-       winnerId = b.userId;
-     } else if (a.memoryUsedKb < b.memoryUsedKb) {
-       winnerId = a.userId;
-     } else {
-       winnerId = b.userId;
-     }
-   }
+  //    if (a.runtimeMs < b.runtimeMs) {
+  //      winnerId = a.userId;
+  //    } else if (b.runtimeMs < a.runtimeMs) {
+  //      winnerId = b.userId;
+  //    } else if (a.memoryUsedKb < b.memoryUsedKb) {
+  //      winnerId = a.userId;
+  //    } else {
+  //      winnerId = b.userId;
+  //    }
+  //  }
+  if (submissions.length === 1) {
+    winnerId = submissions[0].userId;
+  } else if (submissions.length === 2) {
+    const [a, b] = submissions;
+
+    if (a.runtimeMs < b.runtimeMs) {
+      winnerId = a.userId;
+    } else if (b.runtimeMs < a.runtimeMs) {
+      winnerId = b.userId;
+    } else if (a.memoryUsedKb < b.memoryUsedKb) {
+      winnerId = a.userId;
+    } else if (b.memoryUsedKb < a.memoryUsedKb) {
+      winnerId = b.userId;
+    } else {
+      winnerId = null; // draw
+    }
+  } else {
+    // 🔥 IMPORTANT: no one solved
+    winnerId = null; // draw
+  }
 
     battle.status = "completed";
     battle.winnerId = winnerId;

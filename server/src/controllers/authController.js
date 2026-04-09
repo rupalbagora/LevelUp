@@ -36,7 +36,7 @@ export const registerUser = async (req, res) => {
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log(email,password,"login")
+    console.log(email, password, "login");
     if (!email || !password) {
       return res.status(400).json({ message: "All fields required" });
     }
@@ -61,15 +61,17 @@ export const loginUser = async (req, res) => {
       sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
-      res.json({
-        success: true,
-        user: {
-          id: user._id,
-          username: user.username,
-          email: user.email,
-          token:token
-        },
-      });
+    res.json({
+      success: true,
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        totalBattles: user.totalBattles || 0,
+        totalWins: user.totalWins || 0,
+        token: token,
+      },
+    });
   } catch (error) {
     res.status(500).json({ message: "Login failed" });
   }
@@ -81,4 +83,27 @@ export const logoutUser = (req, res) => {
     success: true,
     message: "Logged out successfully",
   });
+};
+
+export const checkAuth = async (req, res) => {
+  try {
+    const user = await User.findById(req.user);
+
+    if (!user) {
+      return res.json({ success: false });
+    }
+
+    res.json({
+      success: true,
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        totalBattles: user.totalBattles || 0,
+        totalWins: user.totalWins || 0,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ success: false });
+  }
 };
