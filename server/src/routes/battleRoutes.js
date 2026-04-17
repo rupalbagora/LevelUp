@@ -12,6 +12,7 @@ router.post("/join/:battleId", protect, joinBattle);
 router.get("/:battleId/question", protect, getBattleQuestion);
 router.post("/:battleId/submit",protect,submitCode);
 router.post("/:battleId/run", protect, runCode);
+router.post("/:battleId/hint", protect, getAIHint);
 export default router;
 
- router.post("/:battleId/hint", protect, getAIHint);
+ 

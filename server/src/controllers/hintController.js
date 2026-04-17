@@ -1,9 +1,11 @@
-// import { GoogleGenerativeAI } from "@google/generative-ai";
-// import Battle from "../models/Battle.js";
-// import AIHint from "../models/AiHint.js";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import Battle from "../models/Battle.js";
+import AIHint from "../models/AiHint.js";
 
 // // Gemini Setup
-// const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+console.log("ALL ENV KEYS:", Object.keys(process.env));
+console.log("API KEY:", process.env.GEMINI_API_KEY);
 
 // export const getAIHint = async (req, res) => {
 //   try {
@@ -82,7 +84,8 @@
 
 export const getAIHint = async (req, res) => {
   try {
-    const { battleId, currentCode, problemStatement, type } = req.body;
+    const { battleId } = req.params;
+    const { currentCode, problemStatement, type } = req.body;
     const userId = req.user;
 
     // 1. Validate input
@@ -121,7 +124,9 @@ export const getAIHint = async (req, res) => {
     }
 
     // 4. Generate AI hint
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({
+      model: "gemini-1.5-flash-001",
+    });
 
     const prompt = `
       You are a competitive programming mentor.
@@ -174,9 +179,11 @@ export const getAIHint = async (req, res) => {
       hintsRemaining: 3 - used,
     });
   } catch (error) {
-    console.error("AI HINT ERROR:", error);
+    console.error("AI HINT ERROR FULL:", error);
+
     res.status(500).json({
-      message: "AI Assistant is resting. Try again!",
+      message: error.message,
+      fullError: error.toString(),
     });
   }
 };

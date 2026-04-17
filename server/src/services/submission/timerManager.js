@@ -7,7 +7,8 @@ export const handleTimers = async (battle, battleId) => {
   if (!battle.firstSubmissionTime) {
     const now = new Date();
     battle.firstSubmissionTime = now;
-    battle.extendedEndTime = new Date(now.getTime() + 2 * 60 * 1000);
+    // battle.extendedEndTime = new Date(now.getTime() + 2 * 60 * 1000);
+    battle.extendedEndTime = new Date(now.getTime() + 10 * 1000);
     await battle.save();
 
     io.to(battleId.toString()).emit("extraTime", {

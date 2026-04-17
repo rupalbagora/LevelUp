@@ -83,7 +83,7 @@ curl -X POST http://localhost:2000/api/v2/packages \
 -d '{"language":"java","version":"15.0.2"}'
 
 11. Verify runtimes
-curl http://localhost:2000/api/v2/runtimes
+cur
 
 12. Execute code
 
