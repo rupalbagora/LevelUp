@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Play, Send, Plus, CheckCircle, XCircle, Terminal } from "lucide-react";
 import { MOCK_TESTCASES } from "../../../utils/battleHelpers";
-
+import { useEffect } from "react";
 /**
  * ConsolePanel
  * Bottom half of the center panel.
@@ -11,13 +11,27 @@ import { MOCK_TESTCASES } from "../../../utils/battleHelpers";
  * onSubmit       {fn}       - called to trigger final submit
  * testResults    {array}    - [{caseId, passed, actual}]
  */
-export default function ConsolePanel({ code = "", onRun, onSubmit, testResults = [] }) {
+export default function ConsolePanel({
+  code = "",
+  onRun,
+  onSubmit,
+  testResults = [],
+  testCases = [],
+}) {
   const [activeTab, setActiveTab] = useState("testcase"); // "testcase" | "result"
   const [selectedCase, setSelectedCase] = useState(1);
   const [customCases, setCustomCases] = useState([]);
+  
 
-  const allCases = [...MOCK_TESTCASES, ...customCases];
-  const currentCase = allCases.find((c) => c.id === selectedCase) || allCases[0];
+  // const allCases = [...MOCK_TESTCASES, ...customCases];
+  const allCases = testCases.map((t, index) => ({
+    id: index + 1,
+    label: `Case ${index + 1}`,
+    input: t.input,
+    expected: t.output,
+  }));
+ const currentCase =
+   allCases.find((c) => c.id === selectedCase) || allCases[0] || null;
 
   function handleAddCase() {
     // 3-case limit for custom inputs
@@ -91,7 +105,7 @@ export default function ConsolePanel({ code = "", onRun, onSubmit, testResults =
                     {c.label}
                   </button>
                 ))}
-                
+
                 {/* + Button for Custom Input */}
                 <button
                   onClick={handleAddCase}
@@ -112,7 +126,7 @@ export default function ConsolePanel({ code = "", onRun, onSubmit, testResults =
                   <Play size={10} className="fill-current" />
                   Run
                 </button>
-                
+
                 <button
                   onClick={handleSubmit}
                   disabled={!code.trim()}
@@ -125,36 +139,29 @@ export default function ConsolePanel({ code = "", onRun, onSubmit, testResults =
             </div>
 
             {/* Inputs Section */}
-            {currentCase && (
-              <div className="space-y-3">
-                {Object.entries(currentCase.inputs).map(([key, val]) => (
-                  <div key={key}>
-                    <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block font-mono font-bold uppercase">
-                      {key} =
-                    </label>
-                    {currentCase.isCustom ? (
-                      <textarea
-                        className="w-full bg-slate-100 dark:bg-[#282828] border border-slate-200 dark:border-[#3a3a3a] rounded px-3 py-2 font-mono text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-[#2cbb5d]"
-                        rows={2}
-                        value={val}
-                        onChange={(e) => {
-                          const newVal = e.target.value;
-                          setCustomCases((prev) =>
-                            prev.map((c) =>
-                              c.id === selectedCase
-                                ? { ...c, inputs: { ...c.inputs, [key]: newVal } }
-                                : c
-                            )
-                          );
-                        }}
-                      />
-                    ) : (
-                      <div className="bg-slate-100 dark:bg-[#282828] border border-slate-200 dark:border-[#3a3a3a] rounded px-3 py-2 font-mono text-sm text-slate-800 dark:text-slate-200">
-                        {val}
-                      </div>
-                    )}
+            {allCases.length === 0 ? (
+              <div className="text-sm text-gray-400 text-center py-4">
+                No test cases available
+              </div>
+            ) : (
+              <div className="space-y-3 text-xs font-mono">
+                {/* 🔥 INPUT */}
+                <div>
+                  <p className="text-slate-400 mb-1 font-bold">Input</p>
+                  <div className="bg-[#3a3a3a] rounded px-3 py-2">
+                    {currentCase?.input}
                   </div>
-                ))}
+                </div>
+
+                {/* 🔥 EXPECTED OUTPUT */}
+                <div>
+                  <p className="text-slate-400 mb-1 font-bold">
+                    Expected Output
+                  </p>
+                  <div className="bg-[#3a3a3a] rounded px-3 py-2 text-green-400">
+                    {currentCase?.expected}
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -189,27 +196,43 @@ export default function ConsolePanel({ code = "", onRun, onSubmit, testResults =
 
             {caseResult ? (
               <div className="space-y-3 text-xs font-mono">
-                <div className={`flex items-center gap-2 font-semibold ${caseResult.passed ? "text-[#2cbb5d]" : "text-red-400"}`}>
-                  {caseResult.passed ? <CheckCircle size={14} /> : <XCircle size={14} />}
+                <div
+                  className={`flex items-center gap-2 font-semibold ${caseResult.passed ? "text-[#2cbb5d]" : "text-red-400"}`}
+                >
+                  {caseResult.passed ? (
+                    <CheckCircle size={14} />
+                  ) : (
+                    <XCircle size={14} />
+                  )}
                   {caseResult.passed ? "Accepted" : "Wrong Answer"}
                 </div>
                 <div>
-                  <p className="text-slate-500 dark:text-slate-400 mb-1 font-bold">Input</p>
+                  <p className="text-slate-500 dark:text-slate-400 mb-1 font-bold">
+                    Input
+                  </p>
                   <div className="bg-slate-100 dark:bg-[#282828] rounded px-3 py-2 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-[#3a3a3a]">
-                    {Object.entries(currentCase?.inputs || {}).map(([k, v]) => (
+                    {/* {Object.entries(currentCase?.inputs || {}).map(([k, v]) => (
                       <div key={k}>{k} = {v}</div>
-                    ))}
+                    ))} */}
+                    {caseResult.input}
                   </div>
                 </div>
                 <div>
-                  <p className="text-slate-500 dark:text-slate-400 mb-1 font-bold">Expected</p>
+                  <p className="text-slate-500 dark:text-slate-400 mb-1 font-bold">
+                    Expected
+                  </p>
                   <div className="bg-slate-100 dark:bg-[#282828] rounded px-3 py-2 text-[#2cbb5d] border border-slate-200 dark:border-[#3a3a3a]">
-                    {currentCase?.expected || "N/A"}
+                    {/* {currentCase?.expected || "N/A"} */}
+                    {caseResult.expected}
                   </div>
                 </div>
                 <div>
-                  <p className="text-slate-500 dark:text-slate-400 mb-1 font-bold">Actual</p>
-                  <div className={`bg-slate-100 dark:bg-[#282828] rounded px-3 py-2 border border-slate-200 dark:border-[#3a3a3a] ${caseResult.passed ? "text-[#2cbb5d]" : "text-red-400"}`}>
+                  <p className="text-slate-500 dark:text-slate-400 mb-1 font-bold">
+                    Actual
+                  </p>
+                  <div
+                    className={`bg-slate-100 dark:bg-[#282828] rounded px-3 py-2 border border-slate-200 dark:border-[#3a3a3a] ${caseResult.passed ? "text-[#2cbb5d]" : "text-red-400"}`}
+                  >
                     {caseResult.actual}
                   </div>
                 </div>

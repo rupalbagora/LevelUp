@@ -202,11 +202,18 @@ async function handleSubmit() {
       console.log("Run API result:", res);
 
       // 👇 convert backend response → UI format
+      // const results = res.testResults.map((t, index) => ({
+      //   caseId: testCase.id,
+      //   // caseId: index + 1,
+      //   passed: t.passed,
+      //   actual: t.actual,
+      // }));
       const results = res.testResults.map((t, index) => ({
-        caseId: testCase.id,
-        // caseId: index + 1,
-        passed: t.passed,
+        caseId: index + 1,
+        input: t.input,
+        expected: t.expected,
         actual: t.actual,
+        passed: t.passed,
       }));
 
       setTestResults(results);
@@ -374,6 +381,7 @@ async function handleSubmit() {
               onSubmit={handleSubmit}
               testResults={testResults}
               submissionStatus={submissionStatus}
+              testCases={problem.testCases?.public || []}
             />
           </div>
         </div>
@@ -396,6 +404,7 @@ async function handleSubmit() {
 
           <div className="flex-shrink-0">
             <AIHintPanel
+              battleId={battleId}
               code={code}
               hintsRemaining={hintsRemaining}
               onHintUsed={handleHintUsed}

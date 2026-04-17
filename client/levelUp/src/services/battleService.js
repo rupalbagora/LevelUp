@@ -51,6 +51,7 @@ export const runCodeAPI = async (battleId, code, language, input) => {
   return res.data;
 };
 
+
 // export const getBattleQuestion = async (battleId) => {
 //   const token = localStorage.getItem("token");
 //   const res = await fetch(`/api/battle/${battleId}/question`, {
