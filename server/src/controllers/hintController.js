@@ -1,100 +1,46 @@
+import mongoose from "mongoose";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import crypto from "crypto";
 import Battle from "../models/Battle.js";
 import AIHint from "../models/AiHint.js";
 
-// // Gemini Setup
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-console.log("ALL ENV KEYS:", Object.keys(process.env));
-console.log("API KEY:", process.env.GEMINI_API_KEY);
-
-// export const getAIHint = async (req, res) => {
-//   try {
-//     const { battleId, currentCode, problemStatement, type } = req.body;
-
-//     // req.user check (Sometime it's an object, sometimes a string)
-//     const userId = req.user;
-
-//     if (!battleId || !type) {
-//       return res.status(400).json({ message: "Battle ID is required" });
-//     }
-
-//     const battle = await Battle.findById(battleId);
-//     if (!battle) return res.status(404).json({ message: "Battle not found" });
-
-//     // 1. Check User Role & Hint Limit (Max 3)
-//     const isCreator = battle.creatorId.equals(userId);
-//     const currentHints = isCreator ? (battle.hintsUsed?.creator || 0) : (battle.hintsUsed?.opponent || 0);
-
-//     if (currentHints >= 3) {
-//       return res.status(400).json({
-//         message: "LIMIT DONE: You've reached your 3-hint limit for this battle!"
-//       });
-//     }
-
-//     // 2. Call Gemini 1.5 Flash (More stable for now)
-//     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-//     const prompt = `
-//       Act as a competitive programming mentor.
-//       Problem Statement: ${problemStatement}
-//       User's Current Code: ${currentCode}
-//       Hint Type: ${type === 'quick' ? 'A very subtle one-line logical hint' : 'A detailed logical step-by-step breakdown'}
-
-//       Rules:
-//       - DO NOT provide any code snippets.
-//       - DO NOT give the full solution.
-//       - Help the user think about the next logical step.
-//       - Keep it under 100 words.
-//     `;
-
-//     const result = await model.generateContent(prompt);
-//     const hintText = result.response.text();
-
-//     // 3. Save to AIHint Collection (Optional but good for logs)
-//     await AIHint.create({
-//       battleId,
-//       userId,
-//       hintType: type,
-//       hintText: hintText
-//     });
-
-//     // 4. Update Battle Model Count (Using atomic update to avoid errors)
-//     if (isCreator) {
-//       battle.hintsUsed.creator = (battle.hintsUsed.creator || 0) + 1;
-//     } else {
-//       battle.hintsUsed.opponent = (battle.hintsUsed.opponent || 0) + 1;
-//     }
-
-//     await battle.save();
-
-//     const finalHintsRemaining = 3 - (isCreator ? battle.hintsUsed.creator : battle.hintsUsed.opponent);
-
-//     res.status(200).json({
-//       hint: hintText,
-//       hintsRemaining: finalHintsRemaining
-//     });
-
-//   } catch (error) {
-//     console.error("AI HINT ERROR:", error);
-//     res.status(500).json({
-//       message: "AI Assistant is resting. Try again!",
-//       error: error.message
-//     });
-//   }
-// };
 
 export const getAIHint = async (req, res) => {
   try {
     const { battleId } = req.params;
     const { currentCode, problemStatement, type } = req.body;
-    const userId = req.user;
 
-    // 1. Validate input
-    if (!battleId || !type) {
-      return res.status(400).json({ message: "Battle ID and type required" });
+    // 1. ✅ Invalid userId check
+    if (!mongoose.Types.ObjectId.isValid(req.user)) {
+      return res.status(401).json({ message: "Invalid user" });
+    }
+    const userId = new mongoose.Types.ObjectId(req.user);
+
+    // 2. ✅ Invalid battleId check
+    if (!mongoose.Types.ObjectId.isValid(battleId)) {
+      return res.status(400).json({ message: "Invalid battle ID" });
+    }
+
+    // 3. ✅ Validation
+    if (!type) {
+      return res.status(400).json({ message: "Type required" });
     }
 
     if (!["quick", "detailed"].includes(type)) {
       return res.status(400).json({ message: "Invalid hint type" });
+    }
+
+    // ✅ problemStatement missing check
+    if (!problemStatement) {
+      return res.status(400).json({ message: "Problem statement required" });
+    }
+
+    // ✅ problemStatement too large check
+    if (problemStatement.length > 5000) {
+      return res
+        .status(400)
+        .json({ message: "Problem statement too large (max 5000 chars)" });
     }
 
     const battle = await Battle.findById(battleId);
@@ -102,7 +48,13 @@ export const getAIHint = async (req, res) => {
       return res.status(404).json({ message: "Battle not found" });
     }
 
-    // 2. Check user is part of battle
+    // 4. ✅ Battle active check
+    const activeBattleStatuses = ["ongoing", "active"];
+    if (!activeBattleStatuses.includes(battle.status)) {
+      return res.status(400).json({ message: "Battle is not active" });
+    }
+
+    // 5. ✅ Check user is part of battle
     if (
       !battle.creatorId.equals(userId) &&
       !(battle.opponentId && battle.opponentId.equals(userId))
@@ -110,77 +62,145 @@ export const getAIHint = async (req, res) => {
       return res.status(403).json({ message: "Not part of this battle" });
     }
 
-    // 3. Role + hint count
+    // 6. Role check
     const isCreator = battle.creatorId.equals(userId);
+    const updateField = isCreator ? "hintsUsed.creator" : "hintsUsed.opponent";
 
-    const currentHints = isCreator
-      ? battle.hintsUsed?.creator || 0
-      : battle.hintsUsed?.opponent || 0;
+    // 7. ✅ Code aur problem trim karo (Token limit safe)
+    const trimmedCode = (currentCode || "").slice(0, 3000);
+    const trimmedProblem = problemStatement.slice(0, 2000);
 
-    if (currentHints >= 3) {
-      return res.status(400).json({
-        message: "Hint limit reached (3)",
+    // 8. ✅ Cache check PEHLE (count mat badhao)
+    const codeHash = crypto
+      .createHash("md5")
+      .update(trimmedProblem + trimmedCode + type)
+      .digest("hex");
+
+    const existingHint = await AIHint.findOne({
+      battleId,
+      userId,
+      hintHash: codeHash,
+    });
+
+    // Cache hit — count nahi badhega
+    if (existingHint) {
+      const currentHints = isCreator
+        ? battle.hintsUsed?.creator || 0
+        : battle.hintsUsed?.opponent || 0;
+
+      return res.json({
+        hint: existingHint.hintText,
+        hintsRemaining: 3 - currentHints,
+        source: "cache",
       });
     }
 
-    // 4. Generate AI hint
+    // 9. ✅ Cache miss — Atomic count badhao
+    const updatedBattle = await Battle.findOneAndUpdate(
+      {
+        _id: battleId,
+        [updateField]: { $lt: 3 },
+      },
+      { $inc: { [updateField]: 1 } },
+      { new: true }
+    );
+
+    if (!updatedBattle) {
+      return res.status(400).json({ message: "Hint limit reached (3)" });
+    }
+
+    // 10. ✅ Stable model + enough tokens
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash-001",
+      model: "gemini-1.5-flash", // ✅ Stable + Free (2.5-flash se better)
+      generationConfig: {
+        maxOutputTokens: type === "quick" ? 150 : 400, // ✅ 40/120 se badha ke 150/400
+        temperature: 0.7,
+      },
     });
 
     const prompt = `
       You are a competitive programming mentor.
-
+      
       Problem:
-      ${problemStatement}
-
+      ${trimmedProblem}
+      
       User Code:
-      ${currentCode}
-
+      ${trimmedCode}
+      
       Type: ${type}
-
+      
       Instructions:
-      - If quick → give ONLY 1-line hint
-      - If detailed → explain step-by-step logic mistake
-      - DO NOT give code
-      - DO NOT give full solution
-      - Focus on user's mistake or next step
-      - Max 80 words
+      - If quick → give ONLY 1-line hint.
+      - If detailed → explain step-by-step logic mistake.
+      - DO NOT give code snippets.
+      - DO NOT give the full solution.
+      - Max words: 50.
+      - Make it concise and clear.
+      - Always focus on the logic and approach, not syntax.
+      - The goal is to guide the user to find the solution themselves!
+      - If the code looks perfect, give a nudge in the right direction.
+      - Maintain a positive and encouraging tone.
     `;
 
-    const result = await model.generateContent(prompt);
-    const hintText = result.response.text();
+    let hintText;
+    try {
+      const result = await model.generateContent(prompt);
 
-    // 5. Save hint history
-    await AIHint.create({
-      battleId,
-      userId,
-      hintType: type,
-      hintText,
-    });
+      // ✅ Primary way se nikalo
+      hintText = result?.response?.text()?.trim();
 
-    // 6. Atomic update
-    const updateField = isCreator ? "hintsUsed.creator" : "hintsUsed.opponent";
+      // ✅ Fallback — candidates se try karo
+      if (!hintText) {
+        const candidates = result?.response?.candidates;
+        hintText = candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+      }
 
-    await Battle.findByIdAndUpdate(battleId, {
-      $inc: { [updateField]: 1 },
-    });
+      // ✅ Ab bhi empty hai toh rollback
+      if (!hintText) {
+        await Battle.findByIdAndUpdate(battleId, {
+          $inc: { [updateField]: -1 },
+        });
+        return res
+          .status(500)
+          .json({ message: "AI returned empty hint, try again" });
+      }
+    } catch (aiError) {
+      // ✅ AI fail — count rollback
+      await Battle.findByIdAndUpdate(battleId, {
+        $inc: { [updateField]: -1 },
+      });
+      console.error("AI call failed:", aiError);
+      return res
+        .status(500)
+        .json({ message: "AI service failed, hint not consumed" });
+    }
 
-    // 7. Get updated count
-    const updatedBattle = await Battle.findById(battleId);
+    // 11. ✅ Hint save karo — fail hone par sirf log karo
+    try {
+      await AIHint.create({
+        battleId,
+        userId,
+        hintType: type,
+        hintText,
+        hintHash: codeHash,
+      });
+    } catch (dbError) {
+      console.error("Hint save failed:", dbError);
+    }
 
+    // 12. ✅ used undefined nahi hoga
     const used = isCreator
-      ? updatedBattle.hintsUsed.creator
-      : updatedBattle.hintsUsed.opponent;
+      ? updatedBattle.hintsUsed?.creator || 0
+      : updatedBattle.hintsUsed?.opponent || 0;
 
-    // 8. Response
+    // 13. Final Response
     res.json({
       hint: hintText,
       hintsRemaining: 3 - used,
+      source: "api",
     });
   } catch (error) {
-    console.error("AI HINT ERROR FULL:", error);
-
+    console.error("AI HINT ERROR:", error);
     res.status(500).json({
       message: error.message,
       fullError: error.toString(),
