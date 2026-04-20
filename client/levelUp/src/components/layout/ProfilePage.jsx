@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo ,useRef} from 'react';
 import { useSelector } from "react-redux";
 import { Settings, Share2, Edit3, Trophy, Target, Award, Flame, Zap, Target as TargetIcon } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useDispatch } from "react-redux";
+import { setUser } from "../../store/auth-slice/authSlice";
 import { motion, AnimatePresence } from 'framer-motion';
+import axios from "axios";
  // Path check kar lena apne folder ke hisaab se
 
 
@@ -62,6 +64,14 @@ const itemVariants = {
   hidden: { y: 15, opacity: 0 },
   visible: { y: 0, opacity: 1 }
 };
+const LANGUAGES = [
+  "Java", "JavaScript", "Python", "TypeScript",
+  "C++", "C", "C#", "SQL", "Go",
+  "Rust", "Kotlin", "Swift", "R", ".NET"
+];
+const AVATARS = ['🦁','🐱','🐶','🐼','🐸','🐵','🐯','🦊','🐻','🐨','🐰','🐹'];
+
+
 
 // --- SUB-COMPONENTS ---
 const BadgesSection = () => (
@@ -205,27 +215,154 @@ const StatsSection = () => (
 
 // --- MAIN PROFILE PAGE COMPONENT ---
 const ProfilePage = () => {
-    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-    const [isEditSidebarOpen, setIsEditSidebarOpen] = useState(false);
-  const profileUrl = window.location.href; 
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isEditSidebarOpen, setIsEditSidebarOpen] = useState(false);
+  const [isLangOpen, setIsLangOpen] = useState(false);
+  const langRef = useRef(null);
+  const [isAvatarOpen, setIsAvatarOpen] = useState(false);
+  const { user } = useSelector((state) => state.auth || {});
+  
 
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(profileUrl);
-    // Yahan tum chaho to ek toast ya alert dikha sakte ho
-    alert("Profile link copied!");
+  // ✅ FIX 1: initial empty rakho (user async aata hai)
+  const [formData, setFormData] = useState({
+  username: '',
+  bio: '',
+  language: [], 
+  github: '',
+  linkedin: '',
+  avatar: '🦁'
+});
+
+  // ✅ FIX 2: user load hone ke baad form update karo
+  useEffect(() => {
+  if (user) {
+    setFormData({
+      username: user.username || '',
+      bio: user.bio || '',
+      language: user.language || [],
+      github: user.github || '',
+      linkedin: user.linkedin || '',
+      avatar: user.avatar || '🦁'
+    });
+  }
+}, [user]);
+
+  // ✅ optional UX: ESC se sidebar close
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape") setIsEditSidebarOpen(false);
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, []);
+
+  useEffect(() => {
+  const handleClickOutside = (event) => {
+    if (langRef.current && !langRef.current.contains(event.target)) {
+      setIsLangOpen(false);
+    }
   };
-  const [activeTab, setActiveTab] = useState('Badges');
-  const { user } = useSelector((state) => state.auth); 
 
-  const renderTabContent = () => {
+  document.addEventListener("mousedown", handleClickOutside);
+
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+  };
+}, []);
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+const dispatch = useDispatch();
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    const res = await axios.put("/api/user/update", formData, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`
+      }
+    });
+
+    dispatch(setUser(res.data.user));
+    alert("Profile Updated Successfully!");
+    setIsEditSidebarOpen(false);
+
+  } catch (err) {
+    console.log(err);
+    alert("Update failed");
+  }
+};
+
+  // ✅ FIX 3: SSR safe
+const profileUrl = typeof window !== "undefined"
+  ? `${window.location.origin}/user/${user?.username}`
+  : "";
+
+const handleCopyLink = async () => {
+  try {
+    await navigator.clipboard.writeText(profileUrl);
+    alert("Profile link copied!");
+  } catch (err) {
+    alert("Copy failed!");
+  }
+};
+const [isShared, setIsShared] = useState(false);
+
+const handleLinkedInShare = () => {
+  // 1. Data collect karein (Rank aur Top 3 Skills)
+  const userRank = "#342"; // Ise dynamic user.rank se replace karein
+  const topSkills = formData.language.slice(0, 3).join(", ");
+  
+  // 2. Ek badhiya Professional Caption banayein
+  const caption = `🚀 Excited to share my technical profile on Level Up! 
+
+🏆 Global Rank: ${userRank}
+💻 Top Skills: ${topSkills}
+📍 Checkout my full coding journey here: `;
+
+  // 3. LinkedIn Feed URL (Ye directly post box kholta hai)
+  const shareUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(caption + profileUrl)}`;
+  
+  // 4. Open in new tab
+  window.open(shareUrl, '_blank', 'noreferrer');
+
+  // 5. Visual Confirmation
+  setIsShared(true);
+  setTimeout(() => setIsShared(false), 3000);
+};
+
+const [activeTab, setActiveTab] = useState('Badges');
+
+  // ✅ performance optimize
+  const renderTabContent = useMemo(() => {
     switch (activeTab) {
       case 'Badges': return <BadgesSection />;
       case 'Activity': return <ActivitySection />;
       case 'Stats': return <StatsSection />;
       default: return null;
     }
-  };
-  
+  }, [activeTab]);
+
+  const handleSelectLanguage = (lang) => {
+  if (!formData.language.includes(lang)) {
+    setFormData({
+      ...formData,
+      language: [...formData.language, lang]
+    });
+  }
+};
+
+const handleRemoveLanguage = (lang) => {
+  setFormData({
+    ...formData,
+    language: formData.language.filter(l => l !== lang)
+  });
+};
 
   return (
     <div className="min-h-screen pt-24 pb-12 transition-colors duration-500 bg-gray-50 dark:bg-[#050816]">
@@ -246,13 +383,15 @@ const ProfilePage = () => {
                   transition={{ type: "spring", stiffness: 300, damping: 15 }}
                   className="w-36 h-36 rounded-full border-[6px] border-white dark:border-[#050816] bg-[#dbeafe] dark:bg-slate-800 flex items-center justify-center text-6xl shadow-xl cursor-pointer"
                 >
-                  🦁
+                  {user?.avatar || '🦁'}
                 </motion.div>
 
                 <div className="mb-2">
-                  <h1 className="text-4xl font-black tracking-tight text-slate-900 dark:text-white">nehaprajapati140</h1>
+                  <h1 className="text-4xl font-black tracking-tight text-slate-900 dark:text-white">
+  {user?.username || "Username"}
+</h1>
                   <div className="flex items-center gap-5 text-slate-500 dark:text-slate-400 text-sm mt-1.5">
-                    <span>📧 nehaprajapati140@example.com</span>
+                    <span>📧 {user?.email || "email@example.com"}</span>
                     <span>📅 Joined Sep 2024</span>
                   </div>
                 </div>
@@ -289,7 +428,7 @@ const ProfilePage = () => {
                 <div className="space-y-3">
                   <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Personal Bio</h3>
                   <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed max-w-xl font-medium">
-                    {user?.bio || "Aspiring AI/ML Engineer and MERN Stack Developer. Passionate about solving complex problems through competitive programming."}
+                    {user?.bio || "No bio added yet"}
                   </p>
                 </div>
 
@@ -299,25 +438,48 @@ const ProfilePage = () => {
                   <div className="space-y-4">
                     <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Expertise</h3>
                     <div className="flex flex-wrap gap-2">
-                      {['Python', 'C++', 'React', 'FastAPI'].map((tech) => (
-                        <span key={tech} className="px-3 py-1 bg-blue-50 dark:bg-blue-500/10 text-[#2563eb] dark:text-cyan-400 rounded-lg text-[10px] font-bold border border-blue-100 dark:border-blue-500/20">
-                          {tech}
-                        </span>
-                      ))}
+                      {(user?.language || []).map((tech) => (
+  <span key={tech} className="px-3 py-1 bg-blue-50 dark:bg-blue-500/10 text-[#2563eb] dark:text-cyan-400 rounded-lg text-[10px] font-bold border">
+    {tech}
+  </span>
+))}
                     </div>
                   </div>
 
                   {/* Social Profiles next to Expertise */}
-                  <div className="space-y-4">
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Connect</h3>
-                    <div className="flex gap-2.5">
-                      <a href="#" className="w-9 h-9 bg-slate-900 dark:bg-white/10 rounded-xl flex items-center justify-center text-[10px] text-white font-bold hover:scale-110 transition-transform shadow-md">GH</a>
-                      <a href="#" className="w-9 h-9 bg-[#0077b5] rounded-xl flex items-center justify-center text-[10px] text-white font-bold hover:scale-110 transition-transform shadow-md">LN</a>
-                      <a href="#" className="w-9 h-9 bg-slate-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl flex items-center justify-center text-slate-500 hover:scale-110 transition-transform">
-                        <Zap size={14} />
-                      </a>
-                    </div>
-                  </div>
+                  <div className="flex gap-2.5">
+  {/* GitHub */}
+  {formData.github && (
+    <a 
+      href={formData.github} 
+      target="_blank" 
+      rel="noopener noreferrer"
+      className="w-9 h-9 bg-slate-900 dark:bg-white/10 rounded-xl flex items-center justify-center text-[10px] text-white font-bold hover:scale-110 transition-transform shadow-md"
+    >
+      GH
+    </a>
+  )}
+
+  {/* LinkedIn */}
+  {formData.linkedin && (
+    <a 
+      href={formData.linkedin} 
+      target="_blank" 
+      rel="noopener noreferrer"
+      className="w-9 h-9 bg-[#0077b5] rounded-xl flex items-center justify-center text-[10px] text-white font-bold hover:scale-110 transition-transform shadow-md"
+    >
+      LN
+    </a>
+  )}
+
+  {/* Extra icon */}
+  <a 
+    href="#" 
+    className="w-9 h-9 bg-slate-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl flex items-center justify-center text-slate-500 hover:scale-110 transition-transform"
+  >
+    <Zap size={14} />
+  </a>
+</div>
                 </div>
               </div>
 
@@ -360,65 +522,78 @@ const ProfilePage = () => {
         </div>
 
         <AnimatePresence mode="wait">
-          {renderTabContent()}
+          {renderTabContent}
         </AnimatePresence>
 
       </div>
       <AnimatePresence>
   {isShareModalOpen && (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
-      <motion.div 
-        initial={{ scale: 0.9, opacity: 0, y: 20 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.9, opacity: 0, y: 20 }}
-        className="bg-white dark:bg-[#0b1120] w-full max-w-md rounded-3xl overflow-hidden shadow-2xl border border-white/10"
-      >
-        {/* Header Section */}
-        <div className="p-8 bg-gradient-to-br from-[#2563eb] to-[#7c3aed] text-white relative">
-          <button 
-            onClick={() => setIsShareModalOpen(false)}
-            className="absolute top-4 right-4 p-2 hover:bg-white/10 rounded-full transition-colors font-bold"
-          >
-            ✕
-          </button>
-          
-          <div className="flex items-center gap-5 mt-4">
-            <div className="w-20 h-20 rounded-full border-4 border-white/20 bg-white/10 flex items-center justify-center text-4xl shadow-2xl">
-              🦁
-            </div>
-            <div>
-              <h3 className="text-2xl font-black tracking-tight">{user?.username || 'nehaprajapati140'}</h3>
-              <p className="text-blue-100 text-xs font-bold uppercase tracking-widest opacity-80">Level Up Champion</p>
-            </div>
+  <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
+    <motion.div 
+      initial={{ scale: 0.9, opacity: 0, y: 20 }}
+      animate={{ scale: 1, opacity: 1, y: 0 }}
+      exit={{ scale: 0.9, opacity: 0, y: 20 }}
+      className="bg-white dark:bg-[#0b1120] w-full max-w-md rounded-3xl overflow-hidden shadow-2xl border border-white/10"
+    >
+      {/* Header with Avatar & Rank */}
+      <div className="p-8 bg-gradient-to-br from-[#2563eb] to-[#7c3aed] text-white relative">
+        <button onClick={() => setIsShareModalOpen(false)} className="absolute top-4 right-4 p-2 hover:bg-white/10 rounded-full font-bold">✕</button>
+        <div className="flex items-center gap-5 mt-4">
+          <div className="w-20 h-20 rounded-full border-4 border-white/20 bg-white/10 flex items-center justify-center text-4xl shadow-2xl">
+            {formData.avatar}
+          </div>
+          <div>
+            <h3 className="text-2xl font-black tracking-tight">{user?.username}</h3>
+            <p className="text-blue-100 text-xs font-bold uppercase tracking-widest opacity-80 flex items-center gap-2">
+              <Trophy size={12}/> Global Rank: #342
+            </p>
           </div>
         </div>
+      </div>
 
-        {/* Copy Section */}
-        <div className="p-8">
-          <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest block mb-3">
-            Profile Link
-          </label>
+      <div className="p-8 space-y-6">
+        {/* Copy Link Section */}
+        <div>
+          <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 block">Profile Link</label>
           <div className="flex gap-2 p-2 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl shadow-inner">
-            <input 
-              readOnly 
-              value={profileUrl}
-              className="bg-transparent flex-1 text-sm px-3 text-slate-600 dark:text-slate-300 outline-none overflow-hidden text-ellipsis"
-            />
-            <button 
-              onClick={handleCopyLink}
-              className="bg-[#2563eb] hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg active:scale-95"
-            >
+            <input readOnly value={profileUrl} className="bg-transparent flex-1 text-sm px-3 text-slate-600 dark:text-slate-300 outline-none overflow-hidden text-ellipsis"/>
+            <button onClick={handleCopyLink} className="bg-slate-200 dark:bg-white/10 hover:bg-slate-300 dark:hover:bg-white/20 text-slate-700 dark:text-white px-4 py-2 rounded-xl text-xs font-bold transition-all">
               Copy
             </button>
           </div>
-          <p className="text-center text-[11px] text-slate-400 mt-6 font-medium italic">
-            "Challenge accepted? Share this link with your friends!"
+        </div>
+
+        {/* LinkedIn Share Button */}
+        <div className="space-y-3">
+          <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] block">Share Achievement</label>
+          <motion.button 
+            whileTap={{ scale: 0.95 }}
+            onClick={handleLinkedInShare}
+            className={`w-full flex items-center justify-center gap-3 py-4 rounded-2xl font-bold transition-all shadow-lg shadow-blue-500/20 
+              ${isShared ? 'bg-green-500 text-white' : 'bg-[#0077b5] hover:bg-[#005885] text-white'}`}
+          >
+            {isShared ? (
+              <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="flex items-center gap-2">
+                ✅ Shared to LinkedIn!
+              </motion.div>
+            ) : (
+              <>
+                <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                  <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.239-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                </svg>
+                Post to LinkedIn
+              </>
+            )}
+          </motion.button>
+          <p className="text-center text-[10px] text-slate-400 italic">
+            Skills & Rank will be included in your post automatically.
           </p>
         </div>
-      </motion.div>
-    </div>
-  )}
-</AnimatePresence>\
+      </div>
+    </motion.div>
+  </div>
+)}
+</AnimatePresence>
 
 
 {/* --- EDIT PROFILE SIDEBAR --- */}
@@ -455,11 +630,14 @@ const ProfilePage = () => {
           </button>
         </div>
 
-        <form className="space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-8">
           {/* Avatar Change */}
           <div className="flex flex-col items-center gap-4 py-6 bg-gray-50 dark:bg-white/5 rounded-3xl border border-dashed border-gray-200 dark:border-white/10">
-            <div className="w-24 h-24 rounded-full bg-blue-100 dark:bg-cyan-500/10 flex items-center justify-center text-5xl shadow-inner relative group cursor-pointer">
-               🦁
+            <div 
+  onClick={() => setIsAvatarOpen(true)}
+  className="w-24 h-24 rounded-full bg-blue-100 dark:bg-cyan-500/10 flex items-center justify-center text-5xl shadow-inner relative group cursor-pointer"
+>
+               {formData.avatar}
                <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                   <span className="text-xs text-white font-bold">Change</span>
                </div>
@@ -472,8 +650,10 @@ const ProfilePage = () => {
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Username</label>
               <input 
-                type="text" 
-                defaultValue={user?.username || 'nehaprajapati140'}
+  type="text"
+  name="username"
+  value={formData.username}
+  onChange={handleChange}
                 className="w-full bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-2xl px-5 py-3.5 text-slate-900 dark:text-white outline-none focus:border-[#2563eb] dark:focus:border-cyan-400 transition-all"
               />
             </div>
@@ -481,21 +661,61 @@ const ProfilePage = () => {
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Short Bio</label>
               <textarea 
-                rows="3"
-                placeholder="Ex: Competitive Programmer | MERN Stack Developer"
+  name="bio"
+  value={formData.bio}
+  onChange={handleChange}
                 className="w-full bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-2xl px-5 py-3.5 text-slate-900 dark:text-white outline-none focus:border-[#2563eb] dark:focus:border-cyan-400 transition-all resize-none"
               />
             </div>
 
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">Preferred Language</label>
-              <select className="w-full bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-2xl px-5 py-3.5 text-slate-900 dark:text-white outline-none focus:border-[#2563eb] dark:focus:border-cyan-400 transition-all appearance-none">
-                <option>C++</option>
-                <option>Java</option>
-                <option>Python</option>
-                <option>JavaScript</option>
-              </select>
-            </div>
+            <div ref={langRef} className="space-y-2 relative">
+  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1">
+    Preferred Language
+  </label>
+
+  {/* Selected Tags */}
+  <div 
+    onClick={() => setIsLangOpen(!isLangOpen)}
+    className="w-full min-h-[50px] flex flex-wrap gap-2 items-center px-4 py-2 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-2xl cursor-pointer"
+  >
+    {formData.language.length === 0 && (
+      <span className="text-gray-400 text-sm">Select languages...</span>
+    )}
+
+    {formData.language.map((lang) => (
+      <div 
+        key={lang}
+        className="flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-lg text-xs font-bold"
+      >
+        {lang}
+        <span 
+          onClick={(e) => {
+            e.stopPropagation();
+            handleRemoveLanguage(lang);
+          }}
+          className="cursor-pointer text-red-500 ml-1"
+        >
+          ✕
+        </span>
+      </div>
+    ))}
+  </div>
+
+  {/* Dropdown */}
+  {isLangOpen && (
+    <div className="absolute z-50 mt-2 w-full bg-white dark:bg-[#0b1120] border border-gray-200 dark:border-white/10 rounded-2xl shadow-lg max-h-52 overflow-y-auto">
+      {LANGUAGES.map((lang) => (
+        <div
+          key={lang}
+          onClick={() => handleSelectLanguage(lang)}
+          className="px-4 py-2 hover:bg-blue-100 dark:hover:bg-white/10 cursor-pointer text-sm"
+        >
+          {lang}
+        </div>
+      ))}
+    </div>
+  )}
+</div>
           </div>
 
           {/* Social Connections */}
@@ -503,11 +723,27 @@ const ProfilePage = () => {
             <h3 className="text-sm font-bold text-slate-900 dark:text-white ml-1">Social Profiles</h3>
             <div className="flex gap-4">
                <div className="flex-1 p-3 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-black flex items-center justify-center text-white">GH</div>
+                  <div className="flex-1 space-y-2">
+  <label className="text-xs font-bold">GitHub</label>
+  <input 
+    name="github"
+    value={formData.github}
+    onChange={handleChange}
+    className="w-full px-3 py-2 rounded-xl bg-gray-50 dark:bg-white/5 border"
+  />
+</div>
                   <span className="text-xs font-medium text-slate-400">GitHub</span>
                </div>
                <div className="flex-1 p-3 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/10 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white text-[10px]">LN</div>
+                  <div className="flex-1 space-y-2">
+  <label className="text-xs font-bold">Linkedin</label>
+  <input 
+    name="linkedin"
+    value={formData.linkedin}
+    onChange={handleChange}
+    className="w-full px-3 py-2 rounded-xl bg-gray-50 dark:bg-white/5 border"
+  />
+</div>
                   <span className="text-xs font-medium text-slate-400">LinkedIn</span>
                </div>
             </div>
@@ -532,6 +768,51 @@ const ProfilePage = () => {
         </form>
       </motion.div>
     </>
+  )}
+</AnimatePresence>
+{/* --- AVATAR SELECTION MODAL --- */}
+<AnimatePresence>
+  {isAvatarOpen && (
+    <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
+      <motion.div 
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        className="bg-white dark:bg-[#0b1120] w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl border border-white/10"
+      >
+        <div className="p-6 border-b border-gray-100 dark:border-white/5 flex justify-between items-center">
+          <h3 className="text-xl font-bold text-slate-900 dark:text-white">Choose Avatar</h3>
+          <button onClick={() => setIsAvatarOpen(false)} className="text-slate-400 hover:text-red-500">✕</button>
+        </div>
+        
+        <div className="p-6 grid grid-cols-4 gap-4">
+          {AVATARS.map((emoji, index) => (
+            <motion.div
+              key={index}
+              whileHover={{ scale: 1.2 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => {
+                setFormData({ ...formData, avatar: emoji });
+                setIsAvatarOpen(false);
+              }}
+              className={`text-3xl p-3 flex items-center justify-center rounded-2xl cursor-pointer transition-all
+                ${formData.avatar === emoji 
+                  ? 'bg-blue-100 dark:bg-blue-500/20 border-2 border-blue-500' 
+                  : 'bg-gray-50 dark:bg-white/5 border-2 border-transparent hover:border-gray-200 dark:hover:border-white/10'
+                }`}
+            >
+              {emoji}
+            </motion.div>
+          ))}
+        </div>
+        
+        <div className="p-4 bg-gray-50 dark:bg-white/5 text-center">
+          <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">
+            Select an emoji to update your profile
+          </p>
+        </div>
+      </motion.div>
+    </div>
   )}
 </AnimatePresence>
     </div>
