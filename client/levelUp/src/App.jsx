@@ -1,48 +1,24 @@
-// import React from 'react'
-// import Navbar from './components/layout/Navbar';
-// import Home from './components/Home/Home';
-// import {Routes,Route} from "react-router-dom"
-// import Auth from './components/auth/Auth';
-// import DashboardLayout from './components/Dashboard/DashboardLayout';
-// const App = () => {
-//   return (
-//     <div className="bg-gray-50">
-//       <Navbar />
-//       <Routes>
-//         <Route path="/" element={<Home />} />
-//         <Route path="/signin" element={<Auth />} />
-//         <Route path="/dashboard" element={<DashboardLayout />} />
-//       </Routes>
-//     </div>
-//   );
-// };
-
-// export default App;
-
-
 import { Routes, Route } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import { checkAuth } from "./store/auth-slice/authSlice";
 
-import Navbar from "./components/layout/Navbar";
+// Components
 import CheckAuth from "./components/common/CheckAuth";
+import MainLayout from "./components/layout/MainLayout"; // Layout Wrapper
 
 import Home from "./components/Home/Home";
 import Auth from "./components/auth/Auth";
 import Dashboard from "./components/Dashboard/Dashboard";
-import DashboardLayout from "./components/Dashboard/DashboardLayout";
 import BattleSetup from "./components/Dashboard/BattleSetup";
 import NotFound from "./pages/NotFound";
-import Footer from "./components/layout/Footer";
 import BattlePage from "./pages/BattlePage";
 import OpponentMatchIntro from "./components/battle/MatchIntro/OpponentMatchIntro";
-
-
+import ProfilePage from "./components/layout/ProfilePage";
 
 function App() {
   const { user, isAuthenticated, isLoading } = useSelector((state) => state.auth);
-  console.log("hello",user)
+  console.log("hello", user);
   const dispatch = useDispatch();
 
   // On every app load, ask the server "is this user still valid?"
@@ -51,7 +27,6 @@ function App() {
   }, [dispatch]);
 
   // Block rendering until we know the auth state
-  // Prevents flash of wrong page (e.g. showing /dashboard then redirecting)
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#050816]">
@@ -62,76 +37,72 @@ function App() {
 
   return (
     <div className="bg-gray-50">
-      <Navbar />
       <Routes>
-  {/* Public — no guard needed */}
-  <Route path="/" element={<Home />} />
+        {/* --- GROUP 1: In pages par Navbar/Footer DIKHEGA --- */}
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<Home />} />
+          
+          <Route
+            path="/dashboard"
 
-  {/* Auth pages */}
-  <Route
-    path="/signin"
-    element={
-      <CheckAuth isAuthenticated={isAuthenticated}>
-        <Auth />
-      </CheckAuth>
-    }
-  />
+            element={
+              <CheckAuth isAuthenticated={isAuthenticated}>
+                <Dashboard />
+              </CheckAuth>
+            }
+          />
+          {/* YE WALA LINE ADD KARO */}
+          <Route path="/profile" 
+           element={
+           <ProfilePage />
+           } 
+          />
 
-  {/* Protected pages */}
-  <Route
-    path="/dashboard"
-    element={
-      <CheckAuth isAuthenticated={isAuthenticated}>
-        <Dashboard />
-      </CheckAuth>
-    }
-  />
+          <Route
+            path="/battle-setup"
+            element={
+              <CheckAuth isAuthenticated={isAuthenticated}>
+                <BattleSetup />
+              </CheckAuth>
+            }
+          />
+        </Route>
 
-  <Route
-    path="/battle-setup"
-    element={
-      <CheckAuth isAuthenticated={isAuthenticated}>
-        <BattleSetup />
-      </CheckAuth>
-    }
-  />
+        {/* --- GROUP 2: In pages par Navbar/Footer NAHI dikhega --- */}
+        
+        {/* Signin Page */}
+        <Route
+          path="/signin"
+          element={
+            <CheckAuth isAuthenticated={isAuthenticated}>
+              <Auth />
+            </CheckAuth>
+          }
+        />
 
-  {/* --- BATTLE SYSTEM --- */}
+        {/* Challenge Page */}
+        <Route 
+          path="/challenge/:battleId" 
+          element={
+            <CheckAuth isAuthenticated={isAuthenticated}>
+              <OpponentMatchIntro />
+            </CheckAuth>
+          } 
+        />
 
-  {/* 1. PEHLE: Opponent ka Intro Page (Accept/Decline) */}
-  {/* Link copy karte waqt dhyan rakhna ki path '/challenge/id' ho */}
-  {/* <Route 
-    path="/challenge/:battleId" 
-    element={
-      <CheckAuth isAuthenticated={isAuthenticated}>
-        <OpponentMatchIntro />
-      </CheckAuth>
-    } 
-  /> */}
-  {/* <Route 
-    path="/challenge/:battleId" 
-    element={
-      <CheckAuth isAuthenticated={isAuthenticated}>
-        <OpponentMatchIntro />
-      </CheckAuth>
-    } 
-  /> */}
+        {/* Battle Arena Screen */}
+        <Route 
+          path="/battle/:battleId" 
+          element={
+            <CheckAuth isAuthenticated={isAuthenticated}>
+              <BattlePage />
+            </CheckAuth>
+          } 
+        />
 
-  {/* 2. BAAD MEIN: Actual Code Editor / FIGHT! Screen */}
-  {/* Yahan par wo image wala 'FIGHT!' animation aayega */}
-  <Route 
-    path="/battle/:battleId" 
-    element={
-      <CheckAuth isAuthenticated={isAuthenticated}>
-        <BattlePage />
-      </CheckAuth>
-    } 
-  />
-
-  {/* 404 Page */}
-  <Route path="*" element={<NotFound />} />
-</Routes>
-      <Footer />
+        {/* 404 Page */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
     </div>
   );
 }
