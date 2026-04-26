@@ -138,13 +138,17 @@ const BattleSetup = () => {
     return () => socketRef.current?.disconnect();
   }, []);
 
-  const handleStartBattle = () => {
+const handleStartBattle = () => {
+    
+
     setIsWaiting(true);
     const socket = io("http://localhost:5000", { withCredentials: true });
     socketRef.current = socket;
+
     socket.on("connect", () => {
       socket.emit("joinBattleRoom", battleId);
     });
+
     socket.on("battleStarted", () => {
       socket.disconnect();
       navigate(`/battle/${battleId}`);

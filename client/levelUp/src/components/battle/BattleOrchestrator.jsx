@@ -44,7 +44,16 @@ export default function BattleOrchestrator() {
 
   const { phase, problem, players, opponentProgress, opponentStatus, result, isLoading } =
     battleState;
-
+if (isLoading || !problem) {
+      return (
+        <div className="fixed inset-0 flex flex-col items-center justify-center gap-4 bg-[#050816]">
+          <div className="w-10 h-10 border-2 border-slate-700 border-t-blue-500 rounded-full animate-spin" />
+          <span className="text-sm tracking-widest uppercase text-slate-400 font-semibold">
+            Loading battle...
+          </span>
+        </div>
+      );
+    }
   if (phase === "waiting") {
     return (
       <div className="fixed inset-0 flex flex-col items-center justify-center gap-4 bg-[#050816]">
@@ -61,16 +70,7 @@ console.log("DEBUG:", {
     isLoading,
     result,
   });
-    if (isLoading || !problem) {
-      return (
-        <div className="fixed inset-0 flex flex-col items-center justify-center gap-4 bg-[#050816]">
-          <div className="w-10 h-10 border-2 border-slate-700 border-t-blue-500 rounded-full animate-spin" />
-          <span className="text-sm tracking-widest uppercase text-slate-400 font-semibold">
-            Loading battle...
-          </span>
-        </div>
-      );
-    }
+    
 
   if (phase === "intro" && players) {
     return <MatchIntro players={players} onComplete={() => startBattle()} />;

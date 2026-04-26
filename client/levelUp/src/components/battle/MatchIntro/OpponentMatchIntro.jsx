@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Swords, XCircle, Zap, ShieldAlert } from "lucide-react";
-import { joinBattleAPI} from "../../../services/battleService";
+import { joinBattleAPI, acceptBattleAPI, terminateBattleAPI } from "../../../services/battleService";
 
 const OpponentMatchIntro = () => {
   const { battleId } = useParams();
@@ -11,32 +11,54 @@ const OpponentMatchIntro = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchBattleInfo = async () => {
-      try {
-        const response = await joinBattleAPI(battleId);
-        // Check if battle is already finished, cancelled or expired
-        if (response.status === "cancelled" || response.status === "expired" || response.status === "completed") {
-          setBattleData({ status: "expired" });
+    const fetchBattleInfo = async () => {
+      try {
+        const response = await joinBattleAPI(battleId);
+        if (response.status === "cancelled" || response.status === "expired" || response.status === "completed") {
+          setBattleData({ status: "expired" });
+        } else {
+          setBattleData(response);
+        }
+      } catch (err) {
+        // ✨ MAGIC LINE: Agar battle start ho gayi hai (400 error), toh bhi button dikhao
+        if (err.response?.status === 400 || err.response?.data?.message?.includes("started")) {
+          setBattleData({ status: "ongoing", topic: "Live Battle", difficulty: "Medium" });
         } else {
-          setBattleData(response);
+          setBattleData({ status: "error" });
         }
-      } catch (err) {
-        setBattleData({ status: "error" });
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchBattleInfo();
-  }, [battleId]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBattleInfo();
+  }, [battleId]);
 
-  const handleAccept = async () => {
+
+const triggerFullscreen = () => {
+    const elem = document.documentElement;
+    if (elem.requestFullscreen) {
+      elem.requestFullscreen().catch((err) => {
+        console.warn(`Fullscreen error: ${err.message}`);
+      });
+    }
+  };
+  
+const handleAccept = async () => {
   try {
+    // 1. Fullscreen trigger
+    triggerFullscreen();
+
     const res = await acceptBattleAPI(battleId);
-    if (res.status === "ongoing") {
-      navigate(`/battle/${battleId}`); // Editor page ka link
+    
+    // Agar status ongoing hai ya pehle se start hai, toh navigate karo
+    if (res.status === "ongoing" || res.message?.includes("started")) {
+      navigate(`/battle/${battleId}`); 
     }
   } catch (err) {
-    alert("Could not accept challenge.");
+    // 🛠️ FAIL-SAFE: Yahan setBattleData ki jagah navigate hona chahiye!
+    // Agar countdown ki wajah se API fail ho, toh bhi Arena ke andar bhej do.
+    console.log("Forcing navigation to arena via catch...");
+    navigate(`/battle/${battleId}`); 
   }
 };
 
@@ -116,7 +138,7 @@ const OpponentMatchIntro = () => {
                 onClick={handleAccept}
                 className="w-full bg-blue-700 py-5 rounded-[1.5rem] text-white font-black uppercase tracking-widest shadow-xl shadow-blue-900/20 flex items-center justify-center gap-3 transition-colors"
               >
-                Accept & Fight <Zap size={20} fill="currentColor" />
+                Enter In Arena <Zap size={20} fill="currentColor" />
               </motion.button>
               
               <button 
