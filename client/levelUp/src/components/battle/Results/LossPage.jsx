@@ -59,6 +59,7 @@ const data = {
     </div>
   );
 
+<<<<<<< HEAD
   return (
     <div className={`min-h-screen ${theme.bg} ${theme.text} p-6 md:p-10 font-sans transition-colors duration-500 relative`}>
 
@@ -192,3 +193,7 @@ export default LossResultScreen;
 //     </div>
 //   );
 // }
+=======
+}
+
+>>>>>>> 0f4ca5453f7d303b8300cd4b814a3e0ea3e12ce2
