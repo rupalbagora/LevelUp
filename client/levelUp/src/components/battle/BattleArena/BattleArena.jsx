@@ -353,7 +353,9 @@ async function handleSubmit() {
               language={language}
               onLanguageChange={handleLanguageChange}
               onChange={handleCodeChange}
-              onMount={(editor) => (editorRef.current = editor)}
+              onMount={(editor, monaco) => {
+  editorRef.current = editor;
+}}
               submissionStatus={submissionStatus}
               username={currentUser.username}
               value={code}
