@@ -191,4 +191,6 @@ export default function VictoryResultScreen({ result, players }) {
       <h1 className={`text-4xl font-bold ${color}`}>{message}</h1>
     </div>
   );
+
 }
+
