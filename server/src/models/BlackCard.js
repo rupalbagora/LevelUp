@@ -6,7 +6,18 @@ const blackCardSchema = new mongoose.Schema({
     ref: "User",
   },
 
+  battleId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Battle",
+  },
+
   reason: String,
+
+  status: {
+    type: String,
+    enum: ["active", "expired"],
+    default: "active",
+  },
 
   issuedAt: {
     type: Date,

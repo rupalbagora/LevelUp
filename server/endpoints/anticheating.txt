@@ -1,0 +1,383 @@
+ANTI-CHEAT SYSTEM API TESTING STEPS
+===================================
+
+Base URL:
+http://localhost:5000
+
+Important:
+All protected APIs need login cookie.
+In frontend this works with withCredentials: true.
+In Postman, login first so cookie is saved automatically.
+
+-----------------------------------
+1. Start Backend Server
+-----------------------------------
+Command:
+cd D:\LEVEL-UP\LevelUp\server
+npm run dev
+
+Health Check:
+GET /test
+
+Expected:
+Status: 200
+Response:
+API working
+
+-----------------------------------
+2. Register Two Test Users
+-----------------------------------
+API:
+POST /api/auth/register
+
+Body User 1:
+{
+  "username": "AntiCheatUser1",
+  "email": "anticheat1@test.com",
+  "password": "TestPass123"
+}
+
+Expected:
+Status: 201
+{
+  "success": true,
+  "message": "User registered successfully"
+}
+
+Body User 2:
+{
+  "username": "AntiCheatUser2",
+  "email": "anticheat2@test.com",
+  "password": "TestPass123"
+}
+
+Expected:
+Status: 201
+
+-----------------------------------
+3. Login User 1
+-----------------------------------
+API:
+POST /api/auth/login
+
+Body:
+{
+  "email": "anticheat1@test.com",
+  "password": "TestPass123"
+}
+
+Expected:
+Status: 200
+Response contains:
+{
+  "success": true,
+  "user": {
+    "id": "...",
+    "username": "AntiCheatUser1"
+  }
+}
+
+Cookie token should be saved.
+
+-----------------------------------
+4. Check Ban Status Before Cheating
+-----------------------------------
+API:
+GET /api/auth/ban-status
+
+Expected:
+Status: 200
+{
+  "banned": false,
+  "message": "User is not banned"
+}
+
+-----------------------------------
+5. Create Battle As User 1
+-----------------------------------
+API:
+POST /api/battle/create
+
+Body:
+{
+  "topic": "Arrays",
+  "difficulty": "Easy"
+}
+
+Expected:
+Status: 201
+Response:
+{
+  "message": "Battle created",
+  "battleId": "..."
+}
+
+Save battleId.
+
+-----------------------------------
+6. Login User 2
+-----------------------------------
+API:
+POST /api/auth/login
+
+Body:
+{
+  "email": "anticheat2@test.com",
+  "password": "TestPass123"
+}
+
+Expected:
+Status: 200
+
+-----------------------------------
+7. Join Battle As User 2
+-----------------------------------
+API:
+POST /api/battle/join/:battleId
+
+Example:
+POST /api/battle/join/PASTE_BATTLE_ID_HERE
+
+Expected:
+Status: 200
+Response:
+{
+  "message": "Joined battle successfully",
+  "questionId": "..."
+}
+
+-----------------------------------
+8. Fetch Battle Question
+-----------------------------------
+API:
+GET /api/battle/:battleId/question
+
+Expected:
+Status: 200
+Response contains:
+{
+  "_id": "...",
+  "title": "...",
+  "description": "...",
+  "testCases": {
+    "public": [...]
+  }
+}
+
+-----------------------------------
+9. Frontend Anti-Cheat Warning Flow
+-----------------------------------
+Inside Battle Arena:
+
+Detection events:
+- tab switch
+- fullscreen exit
+- paste attempt
+
+Expected frontend behavior:
+Warning 1:
+Cheating warning 1/3
+
+Warning 2:
+Cheating warning 2/3
+
+Warning 3:
+Cheating detected! Final warning 3/3
+
+Only after 3rd warning frontend calls:
+POST /api/battle/:battleId/report-cheat
+
+-----------------------------------
+10. Report Cheat API
+-----------------------------------
+API:
+POST /api/battle/:battleId/report-cheat
+
+Body:
+{
+  "reason": "Tab switching detected"
+}
+
+Expected:
+Status: 201
+Response:
+{
+  "success": true,
+  "message": "Cheating detected. User banned for 48 hours.",
+  "blackCardId": "...",
+  "expiresAt": "...",
+  "winnerId": "..."
+}
+
+Expected backend result:
+- BlackCard created
+- Cheater banned for 48 hours
+- Battle status becomes completed
+- Opponent becomes winner
+- battleEnded socket event emitted
+- Leaderboard updated
+
+-----------------------------------
+11. Check Ban Status After Cheat
+-----------------------------------
+Login/check as banned user.
+
+API:
+GET /api/auth/ban-status
+
+Expected:
+Status: 200
+Response:
+{
+  "banned": true,
+  "message": "You are banned for 48 hours due to cheating.",
+  "reason": "Tab switching detected",
+  "bannedUntil": "...",
+  "serverTime": "..."
+}
+
+Frontend expected:
+Home/Dashboard shows:
+“You are banned for 48 hours due to cheating.”
+
+Remaining ban time should count down live.
+
+-----------------------------------
+12. Banned User Cannot Create Battle
+-----------------------------------
+API:
+POST /api/battle/create
+
+Body:
+{
+  "topic": "Arrays",
+  "difficulty": "Easy"
+}
+
+Expected:
+Status: 403
+Response:
+{
+  "message": "User is banned for cheating",
+  "bannedUntil": "..."
+}
+
+-----------------------------------
+13. Banned User Cannot Join Battle
+-----------------------------------
+Create another battle from non-banned user first.
+
+Then try joining that battle as banned user:
+
+API:
+POST /api/battle/join/:battleId
+
+Expected:
+Status: 403
+Response:
+{
+  "message": "User is banned for cheating",
+  "bannedUntil": "..."
+}
+
+-----------------------------------
+14. Login Still Works For Banned User
+-----------------------------------
+API:
+POST /api/auth/login
+
+Expected:
+Status: 200
+
+Important:
+Banned user can login.
+But banned user cannot create or join battle for 48 hours.
+
+-----------------------------------
+15. Auto Unban Logic
+-----------------------------------
+Backend checks:
+BlackCard.expiresAt > current time means user is banned.
+
+If expiresAt is over:
+- ban-status returns banned false
+- create battle allowed
+- join battle allowed
+- expired BlackCard status is updated to expired automatically
+
+No manual admin action required.
+
+-----------------------------------
+16. Leaderboard API After Cheat Result
+-----------------------------------
+API:
+GET /api/leaderboard
+
+Expected:
+Status: 200
+Response:
+[
+  {
+    "rankPosition": 1,
+    "username": "...",
+    "score": 10,
+    "totalWins": 1,
+    "totalBattles": 1
+  }
+]
+
+API:
+GET /api/leaderboard/top/5
+
+Expected:
+Status: 200
+Array response.
+
+API:
+GET /api/leaderboard/me
+
+Expected for winner:
+Status: 200
+Response contains:
+{
+  "rankPosition": ...,
+  "score": 10,
+  "totalWins": 1,
+  "totalBattles": 1
+}
+
+-----------------------------------
+17. Result Screen Test
+-----------------------------------
+After cheat report:
+
+Expected frontend:
+- Cheater sees loss result
+- Opponent sees win result
+- Result screen shows 10 second countdown
+- Countdown updates live
+- After countdown, user redirects to home page
+
+-----------------------------------
+Final Tested Result
+-----------------------------------
+Live API testing completed with:
+22 passed
+0 failed
+
+APIs tested:
+- GET /test
+- POST /api/auth/register
+- POST /api/auth/login
+- GET /api/auth/check-auth
+- POST /api/auth/logout
+- GET /api/auth/ban-status
+- POST /api/battle/create
+- POST /api/battle/join/:battleId
+- GET /api/battle/:battleId/question
+- POST /api/battle/:battleId/run
+- POST /api/battle/:battleId/submit
+- POST /api/battle/:battleId/report-cheat
+- GET /api/leaderboard
+- GET /api/leaderboard/top/:limit
+- GET /api/leaderboard/me

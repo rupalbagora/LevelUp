@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 // import React, { useEffect, useRef, useState } from "react";
 // import {
 //   Zap, Target, Lightbulb, Clock, PlusCircle,
@@ -315,6 +317,28 @@
 // export default VictoryResultScreen;
 
 export default function VictoryResultScreen({ result, players }) {
+  const [countdown, setCountdown] = useState(10);
+
+  useEffect(() => {
+    if (!result) return;
+
+    setCountdown(10);
+
+    const countdownTimer = setInterval(() => {
+      setCountdown((seconds) => {
+        if (seconds <= 1) {
+          clearInterval(countdownTimer);
+          window.location.href = "/";
+          return 0;
+        }
+
+        return seconds - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(countdownTimer);
+  }, [result]);
+
   if (!result) return null;
 
   let message;
@@ -331,9 +355,41 @@ export default function VictoryResultScreen({ result, players }) {
     color = "text-yellow-600";
   }
 
+  message =
+    result.status === "winner"
+      ? "You Won!"
+      : result.status === "defeated"
+        ? "You Lost"
+        : "Draw";
+  color =
+    result.status === "winner"
+      ? "text-emerald-400"
+      : result.status === "defeated"
+        ? "text-red-400"
+        : "text-yellow-300";
+
   return (
-    <div className="flex items-center justify-center h-screen bg-[#050816]">
-      <h1 className={`text-4xl font-bold ${color}`}>{message}</h1>
+    <div className="flex min-h-screen items-center justify-center bg-[#050816] px-6 text-white">
+      <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/[0.06] p-8 text-center shadow-2xl shadow-black/30 backdrop-blur">
+        <span className="inline-flex rounded-full border border-white/10 bg-white/10 px-4 py-1 text-xs font-black tracking-[0.25em] text-white/70">
+          {result.status === "winner"
+            ? "WIN"
+            : result.status === "defeated"
+              ? "LOSS"
+              : "DRAW"}
+        </span>
+        <h1 className={`mt-5 text-4xl font-black ${color}`}>{message}</h1>
+        <p className="mt-3 text-sm text-slate-300">
+          The match is complete. You will be returned home shortly.
+        </p>
+
+        <div className="mx-auto mt-8 flex h-24 w-24 items-center justify-center rounded-full border-4 border-white/10 bg-[#050816] shadow-inner">
+          <span className="text-4xl font-black tabular-nums">{countdown}</span>
+        </div>
+        <p className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+          Redirecting to home
+        </p>
+      </div>
     </div>
   );
 }

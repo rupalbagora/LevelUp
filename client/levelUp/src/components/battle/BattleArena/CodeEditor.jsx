@@ -15,6 +15,7 @@ export default function CodeEditor({
   onLanguageChange,
   onChange,
   onMount,
+  onPasteAttempt,
   submissionStatus = null,
   username = "You",
   value = "",
@@ -141,6 +142,7 @@ useEffect(() => {
   return (
     <div
       ref={wrapRef}
+      onPasteCapture={() => onPasteAttempt?.()}
       className="flex flex-col h-full bg-white dark:bg-[#1e1e1e]"
     >
       {/* Toolbar - Dynamic Colors */}

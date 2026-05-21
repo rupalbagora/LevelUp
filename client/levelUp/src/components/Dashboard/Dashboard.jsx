@@ -4,6 +4,7 @@ import { motion } from "framer-motion"; // Added Framer Motion
 import { Target, Award, Flame, Crown, PlayCircle, Trophy, User, LogOut, LayoutDashboard, Zap, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import BanNotice from "../common/BanNotice";
 
 // --- Animation Variants (Settings) ---
 const topAnim = { hidden: { opacity: 0, y: -50 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6 } } };
@@ -28,6 +29,8 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#050816] text-slate-900 dark:text-slate-100 font-sans overflow-x-hidden">
       <main className="max-w-7xl mx-auto px-6 pt-24 md:pt-28 pb-10 space-y-8">
+        <BanNotice />
+
         {/* Top Welcome Banner - Top Animation */}
         <motion.section
           initial="hidden"
