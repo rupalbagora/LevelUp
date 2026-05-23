@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // import { useState } from "react";
 // import RegisterForm from "./RegisterForm";
 // import LoginForm from "./LoginForm";
@@ -63,6 +64,8 @@
 // };
 
 // export default Auth;
+=======
+>>>>>>> 340c0e839f81a3a05b67adc5a3150b47edccff09
 
 import { useState } from "react";
 import RegisterForm from "./RegisterForm";

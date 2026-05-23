@@ -110,6 +110,7 @@ useEffect(() => {
     [language, onChange],
   );
 
+<<<<<<< HEAD
   function handleEditorMount(editor) {
     monacoEditorRef.current = editor;
     onMount?.(editor);
@@ -118,6 +119,32 @@ useEffect(() => {
       setCursorInfo({ line: e.position.lineNumber, col: e.position.column });
     });
   }
+=======
+  function handleEditorMount(editor, monaco) {
+  monacoEditorRef.current = editor;
+  onMount?.(editor);
+  editor.focus();
+
+  editor.onDidChangeCursorPosition((e) => {
+    setCursorInfo({ line: e.position.lineNumber, col: e.position.column });
+  });
+
+  // ── PASTE BLOCK — Monaco level pe ──────────────────────────────
+  // Method 1: Monaco ka built-in paste command override karo
+  editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyV, () => {
+    // Do nothing — paste silently blocked
+  });
+
+  // Method 2: DOM level capture — right-click paste aur touch paste bhi rokta hai
+  const domNode = editor.getDomNode();
+  if (domNode) {
+    domNode.addEventListener("paste", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    }, true); // true = capture phase, Monaco se pehle fire hoga
+  }
+}
+>>>>>>> 340c0e839f81a3a05b67adc5a3150b47edccff09
 
   function handleReset() {
     if (resetState !== "confirming") {

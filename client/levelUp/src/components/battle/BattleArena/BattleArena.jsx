@@ -127,6 +127,7 @@ export default function BattleArena({
   // Vertical editor/console resize (inside center panel)
   const { topPercent: editorPercent, startDrag: startRowDrag } = useVerticalResize(62, 25, 82);
 
+<<<<<<< HEAD
   useEffect(() => {
     if (arenaRef.current) animateArenaIn(arenaRef.current);
   }, []);
@@ -146,6 +147,20 @@ console.log("FINAL PROBLEM:", problem);
     },
     [onCodeChange]
   );
+=======
+
+
+  // GSAP & Starter Code logic
+  useEffect(() => {
+    if (arenaRef.current) animateArenaIn(arenaRef.current);
+    if (problem) setCode(generateStarterCode(problem, language));
+  }, [problem, language]);
+
+  const handleCodeChange = useCallback((newCode) => {
+    setCode(newCode);
+    onCodeChange?.(newCode);
+  }, [onCodeChange]);
+>>>>>>> 340c0e839f81a3a05b67adc5a3150b47edccff09
 
   function handleLanguageChange(lang) {
     setLanguage(lang);
@@ -283,11 +298,19 @@ async function handleSubmit() {
   return (
     <div
       ref={arenaRef}
+<<<<<<< HEAD
       className="flex flex-col h-screen bg-white dark:bg-[#1a1a1a] text-slate-900 dark:text-slate-200 overflow-hidden"
     >
       {/* ✅ ADD HERE */}
       {submissionStatus === "submitting" && (
         <div className="fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg text-sm z-50">
+=======
+      className="flex flex-col h-screen bg-white dark:bg-[#1a1a1a] text-slate-900 dark:text-slate-200 overflow-hidden select-none"
+    >
+      {/* ✅ ADD HERE */}
+      {submissionStatus === "submitting" && (
+        <div className="fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg text-sm z-50 animate-pulse">
+>>>>>>> 340c0e839f81a3a05b67adc5a3150b47edccff09
           ⏳ Submitting your solution...
         </div>
       )}
@@ -360,7 +383,13 @@ async function handleSubmit() {
               language={language}
               onLanguageChange={handleLanguageChange}
               onChange={handleCodeChange}
+<<<<<<< HEAD
               onMount={(editor) => (editorRef.current = editor)}
+=======
+              onMount={(editor, monaco) => {
+  editorRef.current = editor;
+}}
+>>>>>>> 340c0e839f81a3a05b67adc5a3150b47edccff09
               submissionStatus={submissionStatus}
               username={currentUser.username}
               value={code}

@@ -138,6 +138,7 @@ const BattleSetup = () => {
     return () => socketRef.current?.disconnect();
   }, []);
 
+<<<<<<< HEAD
   const handleStartBattle = () => {
     setIsWaiting(true);
     const socket = io("http://localhost:5000", { withCredentials: true });
@@ -145,6 +146,19 @@ const BattleSetup = () => {
     socket.on("connect", () => {
       socket.emit("joinBattleRoom", battleId);
     });
+=======
+const handleStartBattle = () => {
+    
+
+    setIsWaiting(true);
+    const socket = io(import.meta.env.VITE_API_URL, { withCredentials: true });
+    socketRef.current = socket;
+
+    socket.on("connect", () => {
+      socket.emit("joinBattleRoom", battleId);
+    });
+
+>>>>>>> 340c0e839f81a3a05b67adc5a3150b47edccff09
     socket.on("battleStarted", () => {
       socket.disconnect();
       navigate(`/battle/${battleId}`);
@@ -377,6 +391,7 @@ const BattleSetup = () => {
         </AnimatePresence>
       </div>
 
+<<<<<<< HEAD
       {/* --- TIMED POP-UP MODAL --- */}
       {/* <AnimatePresence>
         {showWaitingModal && (
@@ -435,6 +450,9 @@ const BattleSetup = () => {
           </div>
         )}
       </AnimatePresence> */}
+=======
+      
+>>>>>>> 340c0e839f81a3a05b67adc5a3150b47edccff09
     </div>
   );
 };

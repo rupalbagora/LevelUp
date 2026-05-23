@@ -15,6 +15,7 @@ const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+<<<<<<< HEAD
   // const handleLogin = async (e) => {
   //   e.preventDefault();
 
@@ -37,6 +38,8 @@ const LoginForm = () => {
   //     alert(error.response?.data?.message || "Login failed");
   //   }
   // };
+=======
+>>>>>>> 340c0e839f81a3a05b67adc5a3150b47edccff09
 const handleLogin = async (e) => {
   e.preventDefault();
   const result = await dispatch(loginUser({ email, password }));

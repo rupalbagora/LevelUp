@@ -2,8 +2,8 @@ import { io } from "socket.io-client";
 
 const battleId = "PUT_YOUR_BATTLE_ID";
 
-const userA = io("http://localhost:5000");
-const userB = io("http://localhost:5000");
+const userA = io("import.meta.env.VITE_API_URL");
+const userB = io("import.meta.env.VITE_API_URL");
 
 // ✅ ADD THIS
 userA.on("connect", () => {
