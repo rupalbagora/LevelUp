@@ -4,11 +4,6 @@ import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { registerUser } from "../../store/auth-slice/authSlice";
 import { useNavigate } from "react-router-dom";
-<<<<<<< HEAD
-import axios from "axios";
-=======
-
->>>>>>> 340c0e839f81a3a05b67adc5a3150b47edccff09
 
 const RegisterForm = () => {
     const dispatch = useDispatch();
@@ -17,31 +12,6 @@ const RegisterForm = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-<<<<<<< HEAD
-
-  // const handleRegister = async (e) => {
-  //   e.preventDefault();
-
-  //   try {
-  //     const { data } = await axios.post(
-  //       "http://localhost:5000/api/auth/register",
-  //       {
-  //         username,
-  //         email,
-  //         password,
-  //       },
-  //     );
-
-  //     alert(data.message || "Registration successful");
-
-  //     // redirect to login
-  //     navigate("/signin");
-  //   } catch (error) {
-  //     alert(error.response?.data?.message || "Registration failed");
-  //   }
-  // };
-=======
->>>>>>> 340c0e839f81a3a05b67adc5a3150b47edccff09
  const handleRegister = async (e) => {
    e.preventDefault();
    const result = await dispatch(registerUser({ username, email, password }));

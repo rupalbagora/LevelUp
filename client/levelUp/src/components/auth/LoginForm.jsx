@@ -15,31 +15,6 @@ const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-<<<<<<< HEAD
-  // const handleLogin = async (e) => {
-  //   e.preventDefault();
-
-  //   try {
-  //     const { data } = await axios.post(
-  //       "http://localhost:5000/api/auth/login",
-  //       {
-  //         email,
-  //         password,
-  //       },
-  //     );
-
-  //     // Save token
-  //     localStorage.setItem("token", data.token);
-
-  //     // redirect
-  //     navigate("/dashboard");
-  //   } catch (error) {
-  //     console.log(error.response.data)
-  //     alert(error.response?.data?.message || "Login failed");
-  //   }
-  // };
-=======
->>>>>>> 340c0e839f81a3a05b67adc5a3150b47edccff09
 const handleLogin = async (e) => {
   e.preventDefault();
   const result = await dispatch(loginUser({ email, password }));

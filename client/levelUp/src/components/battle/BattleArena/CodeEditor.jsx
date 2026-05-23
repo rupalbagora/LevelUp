@@ -110,16 +110,6 @@ useEffect(() => {
     [language, onChange],
   );
 
-<<<<<<< HEAD
-  function handleEditorMount(editor) {
-    monacoEditorRef.current = editor;
-    onMount?.(editor);
-    editor.focus();
-    editor.onDidChangeCursorPosition((e) => {
-      setCursorInfo({ line: e.position.lineNumber, col: e.position.column });
-    });
-  }
-=======
   function handleEditorMount(editor, monaco) {
   monacoEditorRef.current = editor;
   onMount?.(editor);
@@ -144,7 +134,6 @@ useEffect(() => {
     }, true); // true = capture phase, Monaco se pehle fire hoga
   }
 }
->>>>>>> 340c0e839f81a3a05b67adc5a3150b47edccff09
 
   function handleReset() {
     if (resetState !== "confirming") {

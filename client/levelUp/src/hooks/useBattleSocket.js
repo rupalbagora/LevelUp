@@ -1,5 +1,3 @@
-
-
 import { useState, useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 import { getBattleQuestion } from "../services/battleService";
@@ -24,11 +22,7 @@ export function useBattleSocket(battleId, userId, onSocketReady) {
   useEffect(() => {
     if (!battleId) return;
 let mounted = true;
-<<<<<<< HEAD
-    const socket = io("http://localhost:5000", {
-=======
     const socket = io(import.meta.env.VITE_API_URL, {
->>>>>>> 340c0e839f81a3a05b67adc5a3150b47edccff09
       withCredentials: true,
       transports: ["websocket", "polling"],
     });
@@ -212,35 +206,10 @@ socket.on("battleEnded", (data) => {
     setBattleState((prev) => ({ ...prev, phase: "battle" }));
   };
 
-<<<<<<< HEAD
-  // const submitSolution = async (code, language) => {
-  //   codeRef.current = code;
-  //   try {
-  //     const token = localStorage.getItem("token");
-  //     const res = await fetch(`/api/battle/${battleId}/submit`, {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //         Authorization: `Bearer ${token}`,
-  //       },
-  //       body: JSON.stringify({ code, language }),
-  //     });
-  //     const data = await res.json();
-  //     console.log("Submit result:", data);
-  //   } catch (error) {
-  //     console.error("Submit error:", error);
-  //   }
-  // };
-const submitSolution = async (code, language) => {
-  try {
-    const res = await fetch(
-      `http://localhost:5000/api/battle/${battleId}/submit`,
-=======
 const submitSolution = async (code, language) => {
   try {
     const res = await fetch(
       `${import.meta.env.VITE_API_URL}/api/battle/${battleId}/submit`,
->>>>>>> 340c0e839f81a3a05b67adc5a3150b47edccff09
       {
         method: "POST",
         headers: {
