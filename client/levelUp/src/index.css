@@ -1,0 +1,123 @@
+@import "tailwindcss";
+@import "./styles/component.css";
+.input_box{
+ /* @apply w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none */
+ @apply w-full px-4 pl-10 my-2 py-2 border rounded-md  text-black placeholder-gray-400 focus:ring-2  focus:ring-blue-500 outline-none 
+}
+
+.btn{
+  @apply w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition my-2
+}
+/* Dark mode support */
+@variant dark (&:where(.dark, .dark *));
+
+/* Optional custom theme */
+@theme {
+  --primary: #7000ff;
+  --secondary: #00d4ff;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Better rendering */
+body {
+  @apply antialiased bg-white dark:bg-[#050816] text-slate-900 dark:text-white transition-colors duration-500;
+}
+
+/* ----------------------------- */
+/* MARQUEE ANIMATION (Languages) */
+/* ----------------------------- */
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: inline-flex;
+  animation: marquee 25s linear infinite;
+}
+
+/* ----------------------------- */
+/* OPTIONAL: Glow Utility Class */
+/* ----------------------------- */
+
+.glow-purple {
+  box-shadow: 0 0 40px rgba(112, 0, 255, 0.4);
+}
+
+.glow-cyan {
+  box-shadow: 0 0 40px rgba(0, 212, 255, 0.4);
+}
+
+/* ----------------------------- */
+/* OPTIONAL: Scrollbar Styling  */
+/* ----------------------------- */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(#7000ff, #00d4ff);
+  border-radius: 999px;
+}
+
+/* ----------------------------- */
+/* Performance optimization */
+/* ----------------------------- */
+
+img {
+  user-select: none;
+  pointer-events: none;
+}
+
+/* ----------------------------- */
+/* BATTLE ARENA UTILITIES        */
+/* ----------------------------- */
+
+/* Blurred opponent code — battle stealth mode */
+.blur-code {
+  filter: blur(8px);
+  user-select: none;
+  pointer-events: none;
+  -webkit-filter: blur(8px);
+}
+
+/* AI Hint skeleton shimmer */
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
+
+.hint-skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(100, 100, 120, 0.15) 25%,
+    rgba(150, 150, 180, 0.25) 50%,
+    rgba(100, 100, 120, 0.15) 75%
+  );
+  background-size: 800px 100%;
+  animation: skeleton-shimmer 1.4s infinite linear;
+}
+
+/* Lightbulb pulse ring */
+@keyframes hint-ring-pulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 0; transform: scale(1.8); }
+}

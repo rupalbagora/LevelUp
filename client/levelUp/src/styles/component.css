@@ -1,0 +1,83 @@
+/* ===============================
+   🌈 Gradient Text
+================================= */
+.gradient-text {
+  @apply text-transparent bg-clip-text bg-gradient-to-r from-[#7000ff] to-[#00d4ff];
+}
+
+/* ===============================
+   🧊 Glass Navbar
+================================= */
+.glass-nav {
+  @apply bg-white/90 dark:bg-[#060910]/90 backdrop-blur-md
+         border-b border-slate-200 dark:border-white/5
+         transition-all duration-300;
+}
+
+/* ===============================
+   🎯 Section Wrapper
+================================= */
+.section-base {
+  @apply bg-white dark:bg-[#060910] transition-colors duration-500;
+}
+
+/* ===============================
+   🚀 Primary Button
+================================= */
+.btn-primary {
+  @apply bg-[#7000ff] hover:bg-[#5e00d9]
+         text-white font-bold
+         px-6 py-2.5 rounded-xl
+         transition-all shadow-md shadow-purple-500/20;
+}
+
+/* ===============================
+   🎮 Secondary CTA Button
+================================= */
+.btn-cta {
+  @apply relative px-8 sm:px-12 py-4
+         rounded-xl font-bold tracking-wide uppercase
+         bg-slate-900 text-white
+         dark:bg-white dark:text-black
+         transition-all duration-300
+         shadow-lg;
+}
+
+/* ===============================
+   🪟 Card Base
+================================= */
+.card-base {
+  @apply bg-white dark:bg-[#0d121d]/40
+         border border-slate-200 dark:border-white/5
+         rounded-3xl
+         transition-all duration-500;
+}
+
+/* ===============================
+   🔲 Icon Container
+================================= */
+.icon-box {
+  @apply w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16
+         rounded-xl md:rounded-2xl
+         bg-slate-100 dark:bg-white/5
+         flex items-center justify-center
+         text-slate-600 dark:text-[#7000ff]
+         transition-all duration-500;
+}
+
+/* ===============================
+   ✨ Section Heading
+================================= */
+.section-heading {
+  @apply text-5xl md:text-6xl font-black
+         text-slate-900 dark:text-white
+         tracking-tighter;
+}
+
+/* ===============================
+   📝 Section Subtext
+================================= */
+.section-subtext {
+  @apply text-slate-500 dark:text-slate-400
+         max-w-2xl mx-auto text-lg font-medium;
+}

@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+
+  /* Main screen background */
+  .battle-bg {
+    @apply bg-[#080c14] text-slate-200;
+  }
+
+  /* Panel container */
+  .battle-panel {
+    @apply bg-[#0d1321] border border-slate-800 rounded-lg;
+  }
+
+  /* Header bar */
+  .battle-header {
+    @apply flex items-center justify-between h-14 px-5 bg-[#0d1321] border-b border-slate-800;
+  }
+
+  /* Button styles */
+  .btn-primary {
+    @apply px-4 py-1.5 bg-blue-500 hover:bg-blue-600 rounded font-bold text-white transition;
+  }
+
+  .btn-secondary {
+    @apply px-4 py-1.5 border border-slate-600 rounded text-slate-300 hover:bg-slate-800 transition;
+  }
+
+  .btn-warning {
+    @apply px-3 py-1 border border-orange-400/40 text-orange-400 hover:bg-orange-500/10 rounded font-semibold;
+  }
+
+  /* Timer */
+  .battle-timer {
+    @apply flex items-center gap-2 px-4 py-1 rounded font-mono text-lg;
+  }
+
+  /* Section titles */
+  .battle-section-title {
+    @apply uppercase text-xs text-slate-400 tracking-wider font-semibold;
+  }
+
+  /* Stat cards */
+  .battle-stat-card {
+    @apply flex flex-col items-center gap-1 p-4 bg-[#0d1321] border border-slate-800 rounded-lg;
+  }
+
+  .battle-bg {
+    @apply bg-[#080c14] text-slate-200;
+  }
+
+  .battle-surface {
+    @apply bg-[#0d1321] border border-[rgba(99,120,180,0.12)];
+  }
+
+  .battle-btn-primary {
+    @apply px-4 py-1.5 rounded-lg bg-blue-500 hover:bg-blue-600 font-bold text-white transition;
+  }
+
+  .battle-btn-secondary {
+    @apply px-4 py-1.5 rounded-lg border border-slate-600 text-slate-300 hover:bg-slate-800;
+  }
+
+}
