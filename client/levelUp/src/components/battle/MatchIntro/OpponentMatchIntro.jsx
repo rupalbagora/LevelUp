@@ -104,8 +104,8 @@ const OpponentMatchIntro = () => {
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-600/10 blur-[120px] rounded-full pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-600/10 blur-[120px] rounded-full pointer-events-none" />
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }} 
         animate={{ opacity: 1, y: 0 }}
         className="relative z-10 w-full max-w-md bg-[#0b0f1a] border border-white/10 p-10 rounded-[3rem] shadow-2xl text-center backdrop-blur-sm"
       >
@@ -114,15 +114,10 @@ const OpponentMatchIntro = () => {
             <div className="w-20 h-20 bg-rose-500/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-rose-500/30">
               <ShieldAlert size={40} className="text-rose-500" />
             </div>
-            <h2 className="text-3xl font-black text-white mb-3 italic uppercase tracking-tighter">
-              Link Expired!
-            </h2>
-            <p className="text-slate-400 mb-8 font-medium">
-              This battle is no longer available. Either the 2-minute timer ran
-              out or it was cancelled.
-            </p>
-            <button
-              onClick={() => navigate("/dashboard")}
+            <h2 className="text-3xl font-black text-white mb-3 italic uppercase tracking-tighter">Link Expired!</h2>
+            <p className="text-slate-400 mb-8 font-medium">This battle is no longer available. Either the 2-minute timer ran out or it was cancelled.</p>
+            <button 
+              onClick={() => navigate("/dashboard")} 
               className="w-full py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-black transition-all border border-white/5"
             >
               RETURN TO DASHBOARD
@@ -133,13 +128,9 @@ const OpponentMatchIntro = () => {
             <div className="w-24 h-24 bg-blue-600/20 rounded-full flex items-center justify-center mx-auto mb-8 border border-blue-500/30 shadow-lg shadow-blue-500/10">
               <Swords size={48} className="text-blue-500" />
             </div>
-
-            <h2 className="text-4xl font-black text-white mb-2 italic uppercase tracking-tighter">
-              Challenge!
-            </h2>
-            <p className="text-blue-500/60 mb-10 text-xs font-black uppercase tracking-[0.3em]">
-              Prepare for the Duel
-            </p>
+            
+            <h2 className="text-4xl font-black text-white mb-2 italic uppercase tracking-tighter">Challenge!</h2>
+            <p className="text-blue-500/60 mb-10 text-xs font-black uppercase tracking-[0.3em]">Prepare for the Duel</p>
 
             {/* Topic & Difficulty Cards */}
             <div className="grid grid-cols-2 gap-4 mb-10">
@@ -169,10 +160,10 @@ const OpponentMatchIntro = () => {
                 onClick={handleAccept}
                 className="w-full bg-blue-700 py-5 rounded-[1.5rem] text-white font-black uppercase tracking-widest shadow-xl shadow-blue-900/20 flex items-center justify-center gap-3 transition-colors"
               >
-                Enter In Arena <Zap size={20} fill="currentColor" />
+                Accept & Fight <Zap size={20} fill="currentColor" />
               </motion.button>
-
-              <button
+              
+              <button 
                 onClick={handleDecline}
                 className="w-full py-4 text-slate-500 font-bold hover:text-rose-500 transition-colors flex items-center justify-center gap-2 uppercase text-xs tracking-widest"
               >

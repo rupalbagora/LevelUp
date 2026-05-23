@@ -5,7 +5,6 @@ import { useDispatch } from "react-redux";
 import { registerUser } from "../../store/auth-slice/authSlice";
 import { useNavigate } from "react-router-dom";
 
-
 const RegisterForm = () => {
     const dispatch = useDispatch();
   const navigate = useNavigate();

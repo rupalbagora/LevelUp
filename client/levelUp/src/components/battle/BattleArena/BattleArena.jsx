@@ -4,6 +4,7 @@ import { animateArenaIn } from "../../../utils/gsapAnimations";
 import { useBattleTimer } from "../../../hooks/useBattleTimer";
 import { usePanelResize, useVerticalResize } from "../../../hooks/usePanelResize";
 import { runCodeAPI } from "../../../services/battleService";
+import { reportCheatAPI } from "../../../services/cheatService";
 
 
 import BattleHeader from "./BattleHeader";
@@ -112,6 +113,11 @@ export default function BattleArena({
   const [submissionStatus, setSubmissionStatus] = useState(null);
   const [hintsRemaining, setHintsRemaining] = useState(3);
   const [testResults, setTestResults] = useState([]);
+  const [cheatWarning, setCheatWarning] = useState(null);
+  const cheatReportedRef = useRef(false);
+  const cheatWarningCountRef = useRef(0);
+  const lastCheatWarningAtRef = useRef(0);
+  const wasFullscreenRef = useRef(Boolean(document.fullscreenElement));
 
   // Which panel is maximized: null | "left" | "center" | "right"
   const [maximized, setMaximized] = useState(null);
@@ -127,18 +133,80 @@ export default function BattleArena({
   // Vertical editor/console resize (inside center panel)
   const { topPercent: editorPercent, startDrag: startRowDrag } = useVerticalResize(62, 25, 82);
 
-
-
-  // GSAP & Starter Code logic
   useEffect(() => {
     if (arenaRef.current) animateArenaIn(arenaRef.current);
-    if (problem) setCode(generateStarterCode(problem, language));
-  }, [problem, language]);
+  }, []);
 
-  const handleCodeChange = useCallback((newCode) => {
-    setCode(newCode);
-    onCodeChange?.(newCode);
-  }, [onCodeChange]);
+  const handleCheatDetection = useCallback(
+    async (reason) => {
+      if (cheatReportedRef.current) return;
+
+      const now = Date.now();
+      if (now - lastCheatWarningAtRef.current < 800) return;
+      lastCheatWarningAtRef.current = now;
+
+      const nextWarningCount = cheatWarningCountRef.current + 1;
+      cheatWarningCountRef.current = nextWarningCount;
+
+      if (nextWarningCount < 3) {
+        setCheatWarning(`Cheating warning ${nextWarningCount}/3`);
+        return;
+      }
+
+      cheatReportedRef.current = true;
+      setCheatWarning("Cheating detected! Final warning 3/3");
+
+      try {
+        await reportCheatAPI(battleId, reason);
+      } catch (error) {
+        console.error("Cheat report failed:", error);
+      }
+    },
+    [battleId],
+  );
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        handleCheatDetection("Tab switching detected");
+      }
+    };
+
+    const handleFullscreenChange = () => {
+      if (document.fullscreenElement) {
+        wasFullscreenRef.current = true;
+        return;
+      }
+
+      if (wasFullscreenRef.current) {
+        handleCheatDetection("Fullscreen exit detected");
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
+  }, [handleCheatDetection]);
+useEffect(() => {
+  if (!problem) return;
+console.log("FINAL PROBLEM:", problem);
+  const starter = generateStarterCode(problem, language);
+  console.log("Generated starter:", starter);
+  setCode(starter);
+  
+}, [problem, language]);
+
+  const handleCodeChange = useCallback(
+    (newCode) => {
+      setCode(newCode);
+      onCodeChange?.(newCode);
+    },
+    [onCodeChange]
+  );
 
   function handleLanguageChange(lang) {
     setLanguage(lang);
@@ -276,11 +344,11 @@ async function handleSubmit() {
   return (
     <div
       ref={arenaRef}
-      className="flex flex-col h-screen bg-white dark:bg-[#1a1a1a] text-slate-900 dark:text-slate-200 overflow-hidden select-none"
+      className="flex flex-col h-screen bg-white dark:bg-[#1a1a1a] text-slate-900 dark:text-slate-200 overflow-hidden"
     >
       {/* ✅ ADD HERE */}
       {submissionStatus === "submitting" && (
-        <div className="fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg text-sm z-50 animate-pulse">
+        <div className="fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg text-sm z-50">
           ⏳ Submitting your solution...
         </div>
       )}
@@ -288,6 +356,12 @@ async function handleSubmit() {
       {submissionStatus === "submitted" && (
         <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg text-sm z-50">
           ✅ Submitted! Waiting for opponent (max 2 min)...
+        </div>
+      )}
+
+      {cheatWarning && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 bg-red-600 text-white px-5 py-3 rounded-lg shadow-lg text-sm font-semibold z-50">
+          ⚠ {cheatWarning}
         </div>
       )}
 
@@ -301,6 +375,11 @@ async function handleSubmit() {
         onSubmit={handleSubmit}
         onHint={() => {}}
       />
+
+      <div className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-center text-xs font-bold text-amber-900 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-100">
+        You cannot tab switch, exit fullscreen, or paste content. Otherwise, you
+        will be banned for 48 hours.
+      </div>
 
       {/* 3-panel grid row */}
       <div id="battle-arena-grid" className="flex flex-1 overflow-hidden">
@@ -353,9 +432,8 @@ async function handleSubmit() {
               language={language}
               onLanguageChange={handleLanguageChange}
               onChange={handleCodeChange}
-              onMount={(editor, monaco) => {
-  editorRef.current = editor;
-}}
+              onMount={(editor) => (editorRef.current = editor)}
+              onPasteAttempt={() => handleCheatDetection("Paste attempt detected")}
               submissionStatus={submissionStatus}
               username={currentUser.username}
               value={code}
