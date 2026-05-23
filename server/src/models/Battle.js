@@ -33,14 +33,11 @@ const battleSchema = new mongoose.Schema(
   creator: { type: Number, default: 0 },
   opponent: { type: Number, default: 0 },
 },
-<<<<<<< HEAD
-=======
     extraHints: {
   creator: { type: Number, default: 0 }, // Reward se milne wale hints
   opponent: { type: Number, default: 0 },
 
 },
->>>>>>> 340c0e839f81a3a05b67adc5a3150b47edccff09
 
     status: {
       type: String,
