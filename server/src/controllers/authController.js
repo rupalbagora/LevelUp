@@ -59,7 +59,7 @@ export const loginUser = async (req, res) => {
       httpOnly: true,
       secure: false,
       sameSite: "lax",
-      domain: "187.127.128.119",
+      // domain: "187.127.128.119",
       path: "/",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
