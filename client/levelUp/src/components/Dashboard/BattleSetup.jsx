@@ -43,10 +43,7 @@ const BattleSetup = () => {
         setStep(3);
       }
     } catch (err) {
-      const message =
-        err?.response?.data?.message ||
-        "Link generate nahi ho payi. Please check if you're logged in!";
-      alert(message);
+      alert("Link is unable to Generate. Please check if you're logged in!");
     } finally {
       setIsGenerating(false);
     }
@@ -141,13 +138,17 @@ const BattleSetup = () => {
     return () => socketRef.current?.disconnect();
   }, []);
 
-  const handleStartBattle = () => {
+const handleStartBattle = () => {
+    
+
     setIsWaiting(true);
-    const socket = io("http://localhost:5000", { withCredentials: true });
+    const socket = io(import.meta.env.VITE_API_URL, { withCredentials: true });
     socketRef.current = socket;
+
     socket.on("connect", () => {
       socket.emit("joinBattleRoom", battleId);
     });
+
     socket.on("battleStarted", () => {
       socket.disconnect();
       navigate(`/battle/${battleId}`);
@@ -380,64 +381,7 @@ const BattleSetup = () => {
         </AnimatePresence>
       </div>
 
-      {/* --- TIMED POP-UP MODAL --- */}
-      {/* <AnimatePresence>
-        {showWaitingModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
-            <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-md" />
-            <motion.div 
-              initial={{ scale: 0.9, opacity: 0, y: 20 }} 
-              animate={{ scale: 1, opacity: 1, y: 0 }} 
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="relative bg-white dark:bg-[#0b0f1a] w-full max-w-sm p-8 rounded-[2.5rem] shadow-2xl text-center border border-white/10"
-            >
-              {battleStatus === "waiting" && (
-                <>
-                  <div className="relative w-20 h-20 mx-auto mb-6">
-                     <Loader2 className="absolute inset-0 text-blue-600 animate-spin" size={80} strokeWidth={1} />
-                     <div className="absolute inset-0 flex items-center justify-center font-black text-blue-600">
-                        {formatTime(timeLeft)}
-                     </div>
-                  </div>
-                  <h3 className="text-xl font-black italic">Waiting for Opponent...</h3>
-                  <p className="text-slate-500 text-sm mt-2">Challenge expires in 2 minutes if not accepted.</p>
-                </>
-              )}
-
-              {battleStatus === "expired" && (
-                <>
-                  <Clock className="mx-auto mb-4 text-orange-500" size={56} />
-                  <h3 className="text-xl font-black text-orange-600 italic">Link Expired!</h3>
-                  <p className="text-slate-500 text-sm mt-2">Time is up. No one joined the battle.</p>
-                  <button 
-                    onClick={() => setShowWaitingModal(false)}
-                    className="mt-6 w-full py-4 bg-slate-100 dark:bg-white/5 rounded-2xl font-bold text-slate-600"
-                  >
-                    OKAY
-                  </button>
-                </>
-              )}
-
-              {battleStatus === "cancelled" && (
-                <>
-                  <XCircle className="mx-auto mb-4 text-rose-500" size={56} />
-                  <h3 className="text-xl font-black text-rose-600 italic">Opponent Declined</h3>
-                  <p className="text-slate-500 text-sm mt-2 font-medium">Your challenge was rejected by the opponent.</p>
-                  <button 
-                    onClick={() => setShowWaitingModal(false)}
-                    className="mt-6 w-full py-4 bg-slate-100 dark:bg-white/5 rounded-2xl font-bold text-slate-600"
-                  > 
-                  <button 
-                    className="mt-6 w-full py-4 bg-slate-100 dark:bg-white/5 rounded-2xl font-bold text-slate-600"
-                  >
-                    Close Window
-                  </button>
-                </>
-              )}
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence> */}
+      
     </div>
   );
 };

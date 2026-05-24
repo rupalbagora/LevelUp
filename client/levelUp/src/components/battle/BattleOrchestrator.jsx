@@ -44,7 +44,6 @@ export default function BattleOrchestrator() {
 
   const { phase, problem, players, opponentProgress, opponentStatus, result, isLoading } =
     battleState;
-
   if (phase === "waiting") {
     return (
       <div className="fixed inset-0 flex flex-col items-center justify-center gap-4 bg-[#050816]">

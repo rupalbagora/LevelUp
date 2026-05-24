@@ -24,7 +24,7 @@ export function useBattleSocket(battleId, userId, onSocketReady) {
   useEffect(() => {
     if (!battleId) return;
 let mounted = true;
-    const socket = io("http://localhost:5000", {
+    const socket = io(import.meta.env.VITE_API_URL, {
       withCredentials: true,
       transports: ["websocket", "polling"],
     });
@@ -208,28 +208,10 @@ socket.on("battleEnded", (data) => {
     setBattleState((prev) => ({ ...prev, phase: "battle" }));
   };
 
-  // const submitSolution = async (code, language) => {
-  //   codeRef.current = code;
-  //   try {
-  //     const token = localStorage.getItem("token");
-  //     const res = await fetch(`/api/battle/${battleId}/submit`, {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //         Authorization: `Bearer ${token}`,
-  //       },
-  //       body: JSON.stringify({ code, language }),
-  //     });
-  //     const data = await res.json();
-  //     console.log("Submit result:", data);
-  //   } catch (error) {
-  //     console.error("Submit error:", error);
-  //   }
-  // };
 const submitSolution = async (code, language) => {
   try {
     const res = await fetch(
-      `http://localhost:5000/api/battle/${battleId}/submit`,
+      `${import.meta.env.VITE_API_URL}/api/battle/${battleId}/submit`,
       {
         method: "POST",
         headers: {

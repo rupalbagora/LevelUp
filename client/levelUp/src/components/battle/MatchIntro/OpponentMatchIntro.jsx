@@ -2,7 +2,11 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Swords, XCircle, Zap, ShieldAlert } from "lucide-react";
-import { joinBattleAPI} from "../../../services/battleService";
+import {
+  joinBattleAPI,
+  acceptBattleAPI,
+  terminateBattleAPI,
+} from "../../../services/battleService";
 
 const OpponentMatchIntro = () => {
   const { battleId } = useParams();
@@ -14,14 +18,29 @@ const OpponentMatchIntro = () => {
     const fetchBattleInfo = async () => {
       try {
         const response = await joinBattleAPI(battleId);
-        // Check if battle is already finished, cancelled or expired
-        if (response.status === "cancelled" || response.status === "expired" || response.status === "completed") {
+        if (
+          response.status === "cancelled" ||
+          response.status === "expired" ||
+          response.status === "completed"
+        ) {
           setBattleData({ status: "expired" });
         } else {
           setBattleData(response);
         }
       } catch (err) {
-        setBattleData({ status: "error" });
+        // ✨ MAGIC LINE: Agar battle start ho gayi hai (400 error), toh bhi button dikhao
+        if (
+          err.response?.status === 400 ||
+          err.response?.data?.message?.includes("started")
+        ) {
+          setBattleData({
+            status: "ongoing",
+            topic: "Live Battle",
+            difficulty: "Medium",
+          });
+        } else {
+          setBattleData({ status: "error" });
+        }
       } finally {
         setLoading(false);
       }
@@ -29,16 +48,33 @@ const OpponentMatchIntro = () => {
     fetchBattleInfo();
   }, [battleId]);
 
-  const handleAccept = async () => {
-  try {
-    const res = await acceptBattleAPI(battleId);
-    if (res.status === "ongoing") {
-      navigate(`/battle/${battleId}`); // Editor page ka link
+  const triggerFullscreen = () => {
+    const elem = document.documentElement;
+    if (elem.requestFullscreen) {
+      elem.requestFullscreen().catch((err) => {
+        console.warn(`Fullscreen error: ${err.message}`);
+      });
     }
-  } catch (err) {
-    alert("Could not accept challenge.");
-  }
-};
+  };
+
+  const handleAccept = async () => {
+    try {
+      // 1. Fullscreen trigger
+      triggerFullscreen();
+
+      const res = await acceptBattleAPI(battleId);
+
+      // Agar status ongoing hai ya pehle se start hai, toh navigate karo
+      if (res.status === "ongoing" || res.message?.includes("started")) {
+        navigate(`/battle/${battleId}`);
+      }
+    } catch (err) {
+      // 🛠️ FAIL-SAFE: Yahan setBattleData ki jagah navigate hona chahiye!
+      // Agar countdown ki wajah se API fail ho, toh bhi Arena ke andar bhej do.
+      console.log("Forcing navigation to arena via catch...");
+      navigate(`/battle/${battleId}`);
+    }
+  };
 
   const handleDecline = async () => {
     try {
@@ -99,18 +135,26 @@ const OpponentMatchIntro = () => {
             {/* Topic & Difficulty Cards */}
             <div className="grid grid-cols-2 gap-4 mb-10">
               <div className="p-5 bg-white/5 rounded-3xl border border-white/5 text-left">
-                <span className="text-[10px] text-slate-500 font-black uppercase tracking-wider block mb-1">Topic</span>
-                <p className="text-white font-bold truncate">{battleData?.topic || "Mixed DSA"}</p>
+                <span className="text-[10px] text-slate-500 font-black uppercase tracking-wider block mb-1">
+                  Topic
+                </span>
+                <p className="text-white font-bold truncate">
+                  {battleData?.topic || "Mixed DSA"}
+                </p>
               </div>
               <div className="p-5 bg-white/5 rounded-3xl border border-white/5 text-left">
-                <span className="text-[10px] text-slate-500 font-black uppercase tracking-wider block mb-1">Level</span>
-                <p className="text-emerald-400 font-bold uppercase">{battleData?.difficulty || "Medium"}</p>
+                <span className="text-[10px] text-slate-500 font-black uppercase tracking-wider block mb-1">
+                  Level
+                </span>
+                <p className="text-emerald-400 font-bold uppercase">
+                  {battleData?.difficulty || "Medium"}
+                </p>
               </div>
             </div>
 
             {/* Action Buttons */}
             <div className="space-y-4">
-              <motion.button 
+              <motion.button
                 whileHover={{ scale: 1.02, backgroundColor: "#2563eb" }}
                 whileTap={{ scale: 0.98 }}
                 onClick={handleAccept}

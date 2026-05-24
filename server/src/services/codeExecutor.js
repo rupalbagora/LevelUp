@@ -76,7 +76,8 @@
 import axios from "axios";
 import { generateWrapper, validateFunction } from "./wrapperGenerator.js";
 
-const PISTON_URL = "http://localhost:2000/api/v2/execute";
+// const PISTON_URL = "http://localhost:2000/api/v2/execute";
+const PISTON_URL = process.env.PISTON_URL;
 
 export async function executeCode({ language, code, input, question }) {
   try {

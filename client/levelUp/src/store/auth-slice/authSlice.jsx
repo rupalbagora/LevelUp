@@ -9,36 +9,30 @@ const initialState = {
 
 export const registerUser = createAsyncThunk(
   "/auth/register",
-  async (formData, { rejectWithValue }) => {
-    try {
-      const response = await axios.post(
-        "http://localhost:5000/api/auth/register",
-        formData,
-        { withCredentials: true },
-      );
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data || { message: "Registration failed" });
-    }
-  },
-);
-
-export const loginUser = createAsyncThunk("/auth/login", async (formData, { rejectWithValue }) => {
-  try {
+  async (formData) => {
     const response = await axios.post(
-      "http://localhost:5000/api/auth/login",
+      `${import.meta.env.VITE_API_URL}/api/auth/register`,
       formData,
       { withCredentials: true },
     );
     return response.data;
-  } catch (error) {
-    return rejectWithValue(error.response?.data || { message: "Login failed" });
-  }
+  },
+);
+
+export const loginUser = createAsyncThunk("/auth/login", async (formData) => {
+  const response = await axios.post(
+    `${import.meta.env.VITE_API_URL}/api/auth/login`,
+    formData,
+    // console.log(formData),
+    { withCredentials: true },
+  );
+  console.log(response.data)
+  return response.data;
 });
 
 export const logoutUser = createAsyncThunk("/auth/logout", async () => {
   const response = await axios.post(
-    "http://localhost:5000/api/auth/logout",
+    `${import.meta.env.VITE_API_URL}/api/auth/logout`,
     {},
     { withCredentials: true },
   );
@@ -47,7 +41,7 @@ export const logoutUser = createAsyncThunk("/auth/logout", async () => {
 
 export const checkAuth = createAsyncThunk("/auth/checkauth", async () => {
   const response = await axios.get(
-    "http://localhost:5000/api/auth/check-auth",
+    `${import.meta.env.VITE_API_URL}/api/auth/check-auth`,
     {
       withCredentials: true,
       headers: {
@@ -79,11 +73,10 @@ const authSlice = createSlice({
         state.user = null;
         state.isAuthenticated = false;
       })
-      .addCase(registerUser.rejected, (state, action) => {
+      .addCase(registerUser.rejected, (state) => {
         state.isLoading = false;
         state.user = null;
         state.isAuthenticated = false;
-        if (action.payload) action.error = { message: action.payload.message };
       });
 
     // Login
@@ -96,11 +89,10 @@ const authSlice = createSlice({
         state.user = action.payload.success ? action.payload.user : null;
         state.isAuthenticated = action.payload.success ? true : false;
       })
-      .addCase(loginUser.rejected, (state, action) => {
+      .addCase(loginUser.rejected, (state) => {
         state.isLoading = false;
         state.user = null;
         state.isAuthenticated = false;
-        if (action.payload) action.error = { message: action.payload.message };
       });
 
     // Logout
