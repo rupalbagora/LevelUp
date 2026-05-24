@@ -1,79 +1,124 @@
+import crypto from "crypto";
 import User from "../models/User.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { formatPublicUser } from "../services/profileService.js";
+import {
+  validateRegisterInput,
+  validateLoginInput,
+  validateForgotPasswordInput,
+  validateResetPasswordInput,
+} from "../utils/authValidation.js";
+
+const sendAuthUser = (user, token) => ({
+  id: user._id,
+  username: user.username,
+  email: user.email,
+  bio: user.bio || "",
+  language: user.language || [],
+  github: user.github || "",
+  linkedin: user.linkedin || "",
+  avatar: user.avatar || "🦁",
+  totalBattles: user.totalBattles || 0,
+  totalWins: user.totalWins || 0,
+  rank: user.rank,
+  token,
+});
 
 // REGISTER
 export const registerUser = async (req, res) => {
   try {
     const { username, email, password } = req.body;
-    // console.log(req.body);
-    const userExists = await User.findOne({ email });
-    if (userExists) {
-      return res.status(400).json({ message: "User already exists" });
-    }
-    if (!username || !email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
 
-    // console.log(username, email, password);
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await User.create({
+    const validationErrors = validateRegisterInput({
       username,
       email,
+      password,
+    });
+    if (validationErrors.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: validationErrors.join(". "),
+      });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const userExists = await User.findOne({ email: normalizedEmail });
+    if (userExists) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User already exists with this email" });
+    }
+
+    const usernameTaken = await User.findOne({
+      username: username.trim(),
+    });
+    if (usernameTaken) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Username already taken" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await User.create({
+      username: username.trim(),
+      email: normalizedEmail,
       password: hashedPassword,
     });
-    // console.log(user)
+
     res
       .status(201)
       .json({ success: true, message: "User registered successfully" });
   } catch (error) {
+    console.error("registerUser:", error.message);
     res.status(500).json({ success: false, message: "Registration failed" });
   }
 };
 
 // Login
-
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log(email, password, "login");
-    if (!email || !password) {
-      return res.status(400).json({ message: "All fields required" });
+
+    const validationErrors = validateLoginInput({ email, password });
+    if (validationErrors.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: validationErrors.join(". "),
+      });
     }
-    const user = await User.findOne({ email });
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await User.findOne({ email: normalizedEmail });
     if (!user) {
-      return res.status(400).json({ message: "User not found" });
+      return res.status(400).json({ success: false, message: "User not found" });
     }
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: "Invalid Password" });
+      return res.status(400).json({ success: false, message: "Invalid password" });
     }
+
     const token = jwt.sign(
       { id: user._id, email: user.email },
       process.env.JWT_SECRET,
-      {
-        expiresIn: "1d",
-      },
+      { expiresIn: "1d" },
     );
+
     res.cookie("token", token, {
       httpOnly: true,
       secure: false,
       sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
+
     res.json({
       success: true,
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-        totalBattles: user.totalBattles || 0,
-        totalWins: user.totalWins || 0,
-        token: token,
-      },
+      user: sendAuthUser(user, token),
     });
   } catch (error) {
-    res.status(500).json({ message: "Login failed" });
+    console.error("loginUser:", error.message);
+    res.status(500).json({ success: false, message: "Login failed" });
   }
 };
 
@@ -87,7 +132,7 @@ export const logoutUser = (req, res) => {
 
 export const checkAuth = async (req, res) => {
   try {
-    const user = await User.findById(req.user);
+    const user = await User.findById(req.user).select("-password");
 
     if (!user) {
       return res.json({ success: false });
@@ -95,15 +140,96 @@ export const checkAuth = async (req, res) => {
 
     res.json({
       success: true,
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-        totalBattles: user.totalBattles || 0,
-        totalWins: user.totalWins || 0,
-      },
+      user: formatPublicUser(user),
     });
   } catch (error) {
     res.status(500).json({ success: false });
+  }
+};
+
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const validationErrors = validateForgotPasswordInput({ email });
+    if (validationErrors.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: validationErrors.join(". "),
+      });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await User.findOne({ email: normalizedEmail });
+
+    // Always return success message to avoid email enumeration
+    const genericMessage =
+      "If an account exists with this email, password reset instructions have been sent.";
+
+    if (!user) {
+      return res.json({ success: true, message: genericMessage });
+    }
+
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+
+    user.resetPasswordToken = hashedToken;
+    user.resetPasswordExpire = Date.now() + 60 * 60 * 1000; // 1 hour
+    await user.save();
+
+    res.json({
+      success: true,
+      message: genericMessage,
+      // Dev convenience: return token when no email service is configured
+      resetToken:
+        process.env.NODE_ENV !== "production" ? resetToken : undefined,
+    });
+  } catch (error) {
+    console.error("forgotPassword:", error.message);
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to process password reset" });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { token, password } = req.body;
+    const validationErrors = validateResetPasswordInput({ token, password });
+    if (validationErrors.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: validationErrors.join(". "),
+      });
+    }
+
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpire: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired reset token",
+      });
+    }
+
+    user.password = await bcrypt.hash(password, 10);
+    user.resetPasswordToken = null;
+    user.resetPasswordExpire = null;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: "Password reset successful. You can now sign in.",
+    });
+  } catch (error) {
+    console.error("resetPassword:", error.message);
+    res.status(500).json({ success: false, message: "Password reset failed" });
   }
 };

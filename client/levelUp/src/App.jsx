@@ -52,10 +52,13 @@ function App() {
             }
           />
           {/* YE WALA LINE ADD KARO */}
-          <Route path="/profile" 
-           element={
-           <ProfilePage />
-           } 
+          <Route
+            path="/profile"
+            element={
+              <CheckAuth isAuthenticated={isAuthenticated}>
+                <ProfilePage />
+              </CheckAuth>
+            }
           />
 
           <Route

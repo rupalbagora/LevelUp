@@ -9,25 +9,31 @@ const initialState = {
 
 export const registerUser = createAsyncThunk(
   "/auth/register",
-  async (formData) => {
+  async (formData, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/auth/register",
+        formData,
+        { withCredentials: true },
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || { message: "Registration failed" });
+    }
+  },
+);
+
+export const loginUser = createAsyncThunk("/auth/login", async (formData, { rejectWithValue }) => {
+  try {
     const response = await axios.post(
-      "http://localhost:5000/api/auth/register",
+      "http://localhost:5000/api/auth/login",
       formData,
       { withCredentials: true },
     );
     return response.data;
-  },
-);
-
-export const loginUser = createAsyncThunk("/auth/login", async (formData) => {
-  const response = await axios.post(
-    "http://localhost:5000/api/auth/login",
-    formData,
-    // console.log(formData),
-    { withCredentials: true },
-  );
-  console.log(response.data)
-  return response.data;
+  } catch (error) {
+    return rejectWithValue(error.response?.data || { message: "Login failed" });
+  }
 });
 
 export const logoutUser = createAsyncThunk("/auth/logout", async () => {
@@ -73,10 +79,11 @@ const authSlice = createSlice({
         state.user = null;
         state.isAuthenticated = false;
       })
-      .addCase(registerUser.rejected, (state) => {
+      .addCase(registerUser.rejected, (state, action) => {
         state.isLoading = false;
         state.user = null;
         state.isAuthenticated = false;
+        if (action.payload) action.error = { message: action.payload.message };
       });
 
     // Login
@@ -89,10 +96,11 @@ const authSlice = createSlice({
         state.user = action.payload.success ? action.payload.user : null;
         state.isAuthenticated = action.payload.success ? true : false;
       })
-      .addCase(loginUser.rejected, (state) => {
+      .addCase(loginUser.rejected, (state, action) => {
         state.isLoading = false;
         state.user = null;
         state.isAuthenticated = false;
+        if (action.payload) action.error = { message: action.payload.message };
       });
 
     // Logout
