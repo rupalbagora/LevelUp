@@ -210,12 +210,15 @@ socket.on("battleEnded", (data) => {
 
 const submitSolution = async (code, language) => {
   try {
+    const token = localStorage.getItem("token");
+
     const res = await fetch(
       `${import.meta.env.VITE_API_URL}/api/battle/${battleId}/submit`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         credentials: "include",
         body: JSON.stringify({ code, language }),
