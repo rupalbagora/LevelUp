@@ -1,244 +1,154 @@
-# Level Up — Dynamic Profile & Auth Implementation
+# Level Up — Fix Report, Google Auth & API Testing
 
-This document describes what was changed, why, and how to verify it. **Folder structure and core battle/auth architecture were not modified** — only extensions and targeted UI wiring were added.
-
----
-
-## 1. Problem Summary
-
-| Area | Before | After |
-|------|--------|-------|
-| Profile page | Hardcoded mock stats, badges, activity, topic mastery | Loaded per logged-in user from API |
-| Dashboard | Static rank `#342`, streak `5`, fake battle history & topics | Same profile API drives real user data |
-| Welcome banner | Hardcoded name `"Rupal"` | Uses Redux `user.username` |
-| Profile edit | Called `/api/user/update` (did not exist) | Working endpoint with validation |
-| Login / Signup | Minimal validation, no forgot password | Client + server validation, forgot/reset password flow |
-| User model | Only auth + battle counters | Profile fields + password reset tokens |
+This document covers **issues found during re-check**, **how they were fixed**, **Google login/signup added**, and **how APIs were tested**.
 
 ---
 
-## 2. Backend Changes
+## 1. Issues Found & Fixes
 
-### 2.1 User model (`server/src/models/User.js`)
+| # | Issue | Root cause | Fix |
+|---|--------|------------|-----|
+| 1 | Profile page showed static mock data (#342 rank, fake battles) | `ProfilePage.jsx` was reverted to old MOCK constants | Re-wired to `fetchUserProfile()` / `updateUserProfile()` with loading & error states |
+| 2 | Profile edit failed / no update | Used `axios.put("/api/user/update")` + `localStorage` token; Vite proxy was disabled | Central `api.js` with `VITE_API_URL`; cookie auth via `withCredentials` |
+| 3 | Dashboard stats empty / wrong | `profileService` called `/api` but proxy commented out in `vite.config.js` | All services use `http://localhost:5000/api` from `.env` |
+| 4 | Login/Register validation missing | Forms reverted to old version | Restored client-side validation + server messages via `rejectWithValue` |
+| 5 | Forgot password not on UI | `LoginForm` reverted | Restored `ForgotPasswordModal` on Sign In & Sign Up tabs |
+| 6 | Auth errors not shown on register | `registerUser` thunk did not propagate API errors | Added `rejectWithValue` in `authSlice.jsx` |
+| 7 | `displayUser` used before defined in ProfilePage | Variable order bug | Moved `displayUser` / `statsSummary` before `profileUrl` |
+| 8 | Stats icons broken after dynamic switch | API returns `{ label, value }` without `icon` | Added `iconMap` keyed by label |
+| 9 | API tests failed with "fetch failed" | Server not running on port 5000 | Start server first, then run `npm test` |
 
-Added optional profile fields (defaults keep existing users working):
-
-- `bio`, `language[]`, `github`, `linkedin`, `avatar`
-- `resetPasswordToken`, `resetPasswordExpire` (for forgot password)
-
-### 2.2 Profile service (`server/src/services/profileService.js`)
-
-Aggregates **real data** from MongoDB:
-
-- **Global rank** — `Leaderboard` collection
-- **Win rate / total battles** — `User` document
-- **Current streak** — consecutive wins from completed `Battle` records
-- **Recent activity** — last 10 completed battles vs opponents
-- **Topic mastery** — battles grouped by `topic`
-- **Badges** — unlocked from wins, streak, battles, rank (derived, not stored separately)
-- **Performance insights** — streak, fastest win, top winning topic
-- **Battle history** — last 5 battles for dashboard
-
-### 2.3 Profile controller & routes
-
-| Method | Route | Auth | Purpose |
-|--------|-------|------|---------|
-| `GET` | `/api/user/profile` | Yes (cookie JWT) | Full profile payload |
-| `PUT` | `/api/user/update` | Yes | Update username, bio, languages, socials, avatar |
-
-**Files:**
-
-- `server/src/controllers/profileController.js`
-- `server/src/routes/userRoutes.js`
-- Registered in `server/src/app.js` as `app.use("/api/user", userRoutes)`
-
-### 2.4 Auth validation & forgot password
-
-**Validation** (`server/src/utils/authValidation.js`):
-
-- Register: username 3–30 chars, valid email, password ≥ 6
-- Login: valid email + password required
-- Forgot / reset: email format, token + password rules
-
-**New auth endpoints** (`server/src/routes/authRoutes.js`):
-
-| Method | Route | Purpose |
-|--------|-------|---------|
-| `POST` | `/api/auth/forgot-password` | Creates reset token (1 hour expiry) |
-| `POST` | `/api/auth/reset-password` | Sets new password with token |
-
-**Note:** No email service is configured. In non-production, the reset token is returned in the API response so you can test the flow. In production, integrate an email provider and omit `resetToken` from the response.
-
-**Updated** `authController.js`:
-
-- Stronger validation on register/login
-- `checkAuth` / `login` return full profile fields via `formatPublicUser()`
+**Not changed:** Battle system, sockets, leaderboard logic, folder structure, cheat/ban flow.
 
 ---
 
-## 3. Frontend Changes
+## 2. New Feature — Google Sign In / Sign Up
 
-### 3.1 Profile service (`client/levelUp/src/services/profileService.js`)
+### Backend
+- **Route:** `POST /api/auth/google`
+- **Body:** `{ "credential": "<Google ID token>" }`
+- **Package:** `google-auth-library`
+- **User model fields:** `googleId`, `authProvider` (`local` | `google`)
+- **Password:** Optional when `googleId` is set (random hash stored internally)
+- **Linking:** If email already exists (local account), Google ID is linked on first Google login
 
-Axios helpers using Vite proxy (`/api` → `localhost:5000`) with `withCredentials: true` (cookie auth).
+### Frontend
+- **Package:** `@react-oauth/google`
+- **Component:** `GoogleSignInButton.jsx` on Sign In & Sign Up (`Auth.jsx`)
+- **Provider:** `GoogleOAuthProvider` in `main.jsx`
+- **Redux:** `googleLogin` thunk in `authSlice.jsx`
 
-### 3.2 Profile page (`client/levelUp/src/components/layout/ProfilePage.jsx`)
+### Environment variables (required for Google button to work)
 
-- Removed all `MOCK DATA` constants
-- On mount: `fetchUserProfile()` → renders dynamic stats, badges, activity, stats tabs
-- Edit sidebar: `updateUserProfile()` → refreshes profile + Redux user
-- Share modal uses live global rank and skills
-- Joined date from `user.createdAt`
-- Protected route added in `App.jsx` via `CheckAuth`
-
-### 3.3 Dashboard (`client/levelUp/src/components/Dashboard/Dashboard.jsx`)
-
-- Fetches same profile API for: global rank, streak, battle history, topic mastery
-- Left battle logic (start battle, quick actions) unchanged
-
-### 3.4 Welcome (`client/levelUp/src/components/Dashboard/Welcome.jsx`)
-
-- Dynamic username from Redux
-
-### 3.5 Auth forms
-
-| File | Changes |
-|------|---------|
-| `LoginForm.jsx` | Inline validation, "Forgot password?" link |
-| `RegisterForm.jsx` | Inline validation, forgot password link on signup tab |
-| `ForgotPasswordModal.jsx` | **New** — request reset + enter token + new password |
-
-### 3.6 Redux (`authSlice.jsx`)
-
-- `loginUser` / `registerUser` use `rejectWithValue` for server error messages
-
----
-
-## 4. What Was NOT Changed
-
-- Battle system (socket, submissions, code execution)
-- Leaderboard update logic after battles
-- Cheat / ban system
-- Folder layout (`controllers`, `routes`, `services`, `components`, etc.)
-- Home page marketing stats (`StatsSection`) — platform-wide numbers, not user-specific
-
----
-
-## 5. How to Run & Test
-
-### 5.1 Start servers
-
-```bash
-# Terminal 1 — Backend
-cd LevelUp/server
-npm run dev
-
-# Terminal 2 — Frontend
-cd LevelUp/client/levelUp
-npm run dev
+**Server** `LevelUp/server/.env`:
+```env
+GOOGLE_CLIENT_ID=your-google-oauth-client-id.apps.googleusercontent.com
 ```
 
-Ensure `LevelUp/server/.env` has `JWT_SECRET` and `MONGODB_URI`.
+**Client** `LevelUp/client/levelUp/.env`:
+```env
+VITE_API_URL=http://localhost:5000
+VITE_GOOGLE_CLIENT_ID=your-google-oauth-client-id.apps.googleusercontent.com
+```
 
-### 5.2 Automated API tests
+Use the **same Client ID** from [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Credentials → OAuth 2.0 Client ID (Web application). Add authorized JavaScript origins: `http://localhost:5173`.
+
+If `VITE_GOOGLE_CLIENT_ID` is empty, the UI shows a setup hint instead of the button.
+
+---
+
+## 3. API Endpoints Summary
+
+| Method | Route | Auth | Description |
+|--------|-------|------|-------------|
+| POST | `/api/auth/register` | No | Register with validation |
+| POST | `/api/auth/login` | No | Email/password login |
+| POST | `/api/auth/google` | No | Google ID token login/signup |
+| POST | `/api/auth/logout` | Cookie | Logout |
+| POST | `/api/auth/forgot-password` | No | Request reset token |
+| POST | `/api/auth/reset-password` | No | Reset password with token |
+| GET | `/api/auth/check-auth` | Cookie | Current user |
+| GET | `/api/user/profile` | Cookie | Full dynamic profile |
+| PUT | `/api/user/update` | Cookie | Update profile |
+
+---
+
+## 4. How APIs Were Tested
+
+### Automated (9 checks — all passed)
 
 ```bash
+# Terminal 1
+cd LevelUp/server
+node server.js
+
+# Terminal 2
 cd LevelUp/server
 npm test
 ```
 
-Expected output: all 8 checks pass (validation, register, login, profile GET/PUT, forgot/reset password, login with new password).
+**Script:** `LevelUp/server/scripts/testProfileAuthApi.js`
 
-**Test file:** `server/scripts/testProfileAuthApi.js`
+| Test | Result |
+|------|--------|
+| Register validation rejects bad input | ✓ |
+| Register new user | ✓ |
+| Login | ✓ |
+| GET profile | ✓ |
+| PUT profile update | ✓ |
+| Forgot password | ✓ |
+| Reset password | ✓ |
+| Login with new password | ✓ |
+| Google auth rejects missing credential | ✓ |
 
-### 5.3 Manual UI checklist
+### Manual UI checklist
 
-1. **Register** — try short username / weak password → see validation errors
-2. **Login** — wrong password → server message
-3. **Forgot password** — enter email → in dev, copy token from success step → set new password
-4. **Profile** — stats reflect your account (0 battles if new user)
-5. **Edit profile** — bio, languages, GitHub/LinkedIn URLs, avatar → save → page refreshes
-6. **Dashboard** — rank shows `Unranked` until leaderboard entry exists; history empty until battles complete
-
----
-
-## 6. API Request Examples
-
-### Get profile (authenticated)
-
-```http
-GET /api/user/profile
-Cookie: token=<jwt>
-```
-
-### Update profile
-
-```http
-PUT /api/user/update
-Content-Type: application/json
-
-{
-  "username": "coder123",
-  "bio": "DSA enthusiast",
-  "language": ["Python", "JavaScript"],
-  "github": "https://github.com/username",
-  "linkedin": "https://linkedin.com/in/username",
-  "avatar": "🐱"
-}
-```
-
-### Forgot password
-
-```http
-POST /api/auth/forgot-password
-{ "email": "user@example.com" }
-```
-
-### Reset password
-
-```http
-POST /api/auth/reset-password
-{ "token": "<token from forgot response>", "password": "newpass123" }
-```
+1. **Sign up** — short username / weak password → inline errors  
+2. **Sign in** — wrong password → alert with server message  
+3. **Forgot password** — email → dev token → reset → login  
+4. **Google** — click button (with Client ID set) → dashboard  
+5. **Profile** — stats/badges/activity from your account  
+6. **Edit profile** — save bio, languages, socials → refreshes  
+7. **Dashboard** — rank, streak, history from same profile API  
 
 ---
 
-## 7. Files Added / Modified (Quick Reference)
+## 5. Files Modified in This Pass
 
 ### Added
+- `client/levelUp/src/services/api.js`
+- `client/levelUp/src/components/auth/GoogleSignInButton.jsx`
 
-- `server/src/services/profileService.js`
-- `server/src/controllers/profileController.js`
-- `server/src/routes/userRoutes.js`
-- `server/src/utils/authValidation.js`
-- `server/scripts/testProfileAuthApi.js`
-- `client/levelUp/src/services/profileService.js`
-- `client/levelUp/src/components/auth/ForgotPasswordModal.jsx`
-- `LevelUp/IMPLEMENTATION_DOCUMENTATION.md`
-
-### Modified
-
-- `server/src/models/User.js`
-- `server/src/controllers/authController.js`
-- `server/src/routes/authRoutes.js`
-- `server/src/app.js`
-- `server/package.json` (test script)
-- `client/levelUp/src/components/layout/ProfilePage.jsx`
-- `client/levelUp/src/components/Dashboard/Dashboard.jsx`
-- `client/levelUp/src/components/Dashboard/Welcome.jsx`
-- `client/levelUp/src/components/auth/LoginForm.jsx`
-- `client/levelUp/src/components/auth/RegisterForm.jsx`
-- `client/levelUp/src/store/auth-slice/authSlice.jsx`
-- `client/levelUp/src/App.jsx`
+### Updated
+- `server/src/models/User.js` — Google fields
+- `server/src/controllers/authController.js` — Google auth, token helper
+- `server/src/routes/authRoutes.js` — `/google` route
+- `client/levelUp/src/store/auth-slice/authSlice.jsx` — shared API, Google thunk, errors
+- `client/levelUp/src/services/profileService.js` — uses `api.js`
+- `client/levelUp/src/components/layout/ProfilePage.jsx` — dynamic again
+- `client/levelUp/src/components/auth/LoginForm.jsx` — validation + forgot password
+- `client/levelUp/src/components/auth/RegisterForm.jsx` — validation + forgot password
+- `client/levelUp/src/components/auth/Auth.jsx` — Google button + divider
+- `client/levelUp/src/main.jsx` — GoogleOAuthProvider
+- `server/scripts/testProfileAuthApi.js` — Google validation test
+- `server/.env` / `client/levelUp/.env` — Google Client ID placeholders
 
 ---
 
-## 8. Production Notes
+## 6. Run Project
 
-1. **Email for password reset** — wire `forgotPassword` to SendGrid/Nodemailer; do not return `resetToken` in JSON.
-2. **Profile URL** — `/user/:username` public page is not implemented; share link is prepared for future use.
-3. **Badges** — computed on each profile load; for scale, cache or persist unlock events later.
+```bash
+# Backend
+cd LevelUp/server
+npm run dev
+
+# Frontend
+cd LevelUp/client/levelUp
+npm run dev
+```
+
+Open `http://localhost:5173` → Sign In / Sign Up → test email or Google flow → Profile & Dashboard.
 
 ---
 
-*Implementation completed with API smoke tests passing on local environment (port 5000).*
+*Last verified: all 9 automated API tests passed with server on port 5000 and MongoDB Atlas connected.*

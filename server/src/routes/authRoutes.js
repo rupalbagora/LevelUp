@@ -6,6 +6,7 @@ import {
   checkAuth,
   forgotPassword,
   resetPassword,
+  googleAuth,
 } from "../controllers/authController.js";
 import { getBanStatus } from "../controllers/cheatController.js";
 import protect from "../middlewares/authMiddleware.js";
@@ -16,6 +17,7 @@ router.post("/login",loginUser);
 router.post("/logout", logoutUser);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
+router.post("/google", googleAuth);
 // router.get("/check-auth", protect, (req, res) => {
 //   const user = req.user;
 //   res.status(200).json({

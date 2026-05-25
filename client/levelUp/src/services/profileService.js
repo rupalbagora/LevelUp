@@ -1,9 +1,4 @@
-import axios from "axios";
-
-const api = axios.create({
-  baseURL: "/api",
-  withCredentials: true,
-});
+import api from "./api.js";
 
 export const fetchUserProfile = async () => {
   const { data } = await api.get("/user/profile");
@@ -22,5 +17,10 @@ export const requestPasswordReset = async (email) => {
 
 export const resetPasswordWithToken = async ({ token, password }) => {
   const { data } = await api.post("/auth/reset-password", { token, password });
+  return data;
+};
+
+export const googleAuthRequest = async (credential) => {
+  const { data } = await api.post("/auth/google", { credential });
   return data;
 };

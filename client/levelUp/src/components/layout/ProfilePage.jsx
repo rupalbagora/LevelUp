@@ -4,45 +4,21 @@ import { Settings, Share2, Edit3, Trophy, Target, Award, Flame, Zap, Target as T
 import { useDispatch } from "react-redux";
 import { setUser } from "../../store/auth-slice/authSlice";
 import { motion, AnimatePresence } from 'framer-motion';
-import axios from "axios";
- // Path check kar lena apne folder ke hisaab se
+import { fetchUserProfile, updateUserProfile } from "../../services/profileService";
 
+const iconMap = {
+  'Global Rank': <Trophy className="text-[#2563eb] dark:text-cyan-400 w-5 h-5" />,
+  'Total Battles': <Target className="text-green-600 dark:text-green-400 w-5 h-5" />,
+  'Win Rate': <Award className="text-orange-500 w-5 h-5" />,
+  'Current Streak': <Flame className="text-green-500 dark:text-cyan-400 w-5 h-5" />,
+};
 
+const insightIconMap = {
+  green: <Flame/>,
+  blue: <Zap/>,
+  orange: <TargetIcon/>,
+};
 
-// --- MOCK DATA ---
-const statsSummary = [
-  { label: 'Global Rank', value: '#342', icon: <Trophy className="text-[#2563eb] dark:text-cyan-400 w-5 h-5" /> },
-  { label: 'Total Battles', value: '47', icon: <Target className="text-green-600 dark:text-green-400 w-5 h-5" /> },
-  { label: 'Win Rate', value: '68%', icon: <Award className="text-orange-500 w-5 h-5" /> },
-  { label: 'Current Streak', value: '5', icon: <Flame className="text-green-500 dark:text-cyan-400 w-5 h-5" /> },
-];
-const badgesData = [
-  { name: 'First Victory', date: 'Sep 15, 2024', emoji: '🏆', locked: false },
-  { name: 'Speed Demon', date: 'Sep 20, 2024', emoji: '⚡', locked: false },
-  { name: '5 Win Streak', date: 'Oct 1, 2024', emoji: '🔥', locked: false },
-  { name: 'Binary Master', date: 'Oct 3, 2024', emoji: '🎯', locked: false },
-  { name: 'Top 500', date: 'Oct 4, 2024', emoji: '👑', locked: false },
-  { name: 'DP Wizard', date: 'Locked', emoji: '🧙‍♂️', locked: true },
-  { name: '100 Wins', date: 'Locked', emoji: '💯', locked: true },
-  { name: 'Perfect Week', date: 'Locked', emoji: '✨', locked: true },
-];
-const activityData = [
-  { type: 'Victory', vs: 'CodeNinja92', topic: 'Binary Search', time: '2 hours ago' },
-  { type: 'Victory', vs: 'AlgoMaster', topic: 'Arrays', time: '1 day ago' },
-  { type: 'Defeat', vs: 'DPDynamo', topic: 'Dynamic Programming', time: '2 days ago' },
-];
-const topicMasteryData = [
-  { topic: 'Arrays & Strings', completed: 12, progress: 85 },
-  { topic: 'Binary Search', completed: 10, progress: 95 },
-  { topic: 'Dynamic Programming', completed: 5, progress: 45 },
-  { topic: 'Trees & Graphs', completed: 9, progress: 60 },
-  { topic: 'Sorting', completed: 11, progress: 75 },
-];
-const performanceInsights = [
-  { title: 'Best Streak', value: '8 Wins', date: 'Sep 25 - Sep 28', icon: <Flame/>, color: 'green' },
-  { title: 'Fastest Win', value: '1m 32s', date: 'Binary Search - Easy', icon: <Zap/>, color: 'blue' },
-  { title: 'Most Wins Topic', value: 'Arrays', date: '15 Wins', icon: <TargetIcon/>, color: 'orange' },
-];
 // --- ANIMATION VARIANTS ---
 const tabContentVariants = {
   hidden: { opacity: 0, y: 15 },
@@ -67,7 +43,7 @@ const AVATARS = ['🦁','🐱','🐶','🐼','🐸','🐵','🐯','🦊','🐻',
 
 
 // --- SUB-COMPONENTS ---
-const BadgesSection = () => (
+const BadgesSection = ({ badgesData = [] }) => (
   <motion.div 
     initial="hidden" 
     animate="visible" 
@@ -81,7 +57,9 @@ const BadgesSection = () => (
     </div>
     
     <motion.div variants={containerVariants} initial="hidden" animate="visible" className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-      {badgesData.map((badge, idx) => (
+      {badgesData.length === 0 ? (
+        <p className="text-slate-500 text-sm col-span-full">Play battles to earn badges.</p>
+      ) : badgesData.map((badge, idx) => (
         <motion.div 
           key={idx} 
           variants={itemVariants} 
@@ -121,14 +99,16 @@ const BadgesSection = () => (
     </motion.div>
   </motion.div>
 );
-const ActivitySection = () => (
+const ActivitySection = ({ activityData = [] }) => (
   <motion.div initial="hidden" animate="visible" exit="exit" variants={tabContentVariants} className="bg-white dark:bg-[#050816] rounded-3xl p-9 border border-gray-100 dark:border-white/5 shadow-sm">
     <div className="mb-8 pb-3 border-b border-gray-100 dark:border-white/5 flex justify-between items-center">
       <h2 className="text-xl font-bold text-slate-900 dark:text-white">Recent Activity</h2>
       <span className="text-xs font-bold text-[#2563eb] dark:text-cyan-400 bg-blue-50 dark:bg-cyan-500/10 px-3 py-1 rounded-full">Last 30 Days</span>
     </div>
     <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-4">
-      {activityData.map((act, idx) => (
+      {activityData.length === 0 ? (
+        <p className="text-slate-500 text-sm">No battles yet. Start your first duel!</p>
+      ) : activityData.map((act, idx) => (
         <motion.div 
           key={idx} 
           variants={itemVariants} 
@@ -163,12 +143,14 @@ const ActivitySection = () => (
     </motion.div>
   </motion.div>
 );
-const StatsSection = () => (
+const StatsSection = ({ topicMasteryData = [], performanceInsights = [] }) => (
   <motion.div initial="hidden" animate="visible" exit="exit" variants={tabContentVariants} className="grid md:grid-cols-2 gap-8">
     <div className="bg-white dark:bg-[#050816] rounded-3xl p-9 border border-gray-100 dark:border-white/5 shadow-sm">
       <h2 className="text-xl font-bold text-slate-900 dark:text-white">Topic Mastery</h2>
       <motion.div variants={containerVariants} className="mt-8 space-y-6">
-        {topicMasteryData.map((topic, i) => (
+        {topicMasteryData.length === 0 ? (
+          <p className="text-slate-500 text-sm">Complete battles to see topic progress.</p>
+        ) : topicMasteryData.map((topic, i) => (
           <motion.div key={i} variants={itemVariants}>
             <div className="flex justify-between items-center mb-1.5">
               <span className="font-semibold text-sm text-slate-800 dark:text-slate-200">{topic.topic}</span>
@@ -191,7 +173,7 @@ const StatsSection = () => (
         };
         return (
           <motion.div key={i} whileHover={{ x: 4 }} className={`flex items-center gap-4 p-5 rounded-2xl border shadow-inner ${colors[insight.color]}`}>
-            <div className="p-2.5 rounded-xl bg-white/60 dark:bg-white/5">{insight.icon}</div>
+            <div className="p-2.5 rounded-xl bg-white/60 dark:bg-white/5">{insightIconMap[insight.color]}</div>
             <div>
               <p className="text-xs font-bold uppercase tracking-wider opacity-80">{insight.title}</p>
               <p className="text-2xl font-black mt-0.5 tracking-tight">{insight.value}</p>
@@ -226,10 +208,13 @@ const ProfilePage = () => {
   const [isLangOpen, setIsLangOpen] = useState(false);
   const langRef = useRef(null);
   const [isAvatarOpen, setIsAvatarOpen] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [profileError, setProfileError] = useState("");
+  const [profileData, setProfileData] = useState(null);
+  const [saveError, setSaveError] = useState("");
   const { user } = useSelector((state) => state.auth || {});
-  
+  const dispatch = useDispatch();
 
-  // ✅ FIX 1: initial empty rakho (user async aata hai)
   const [formData, setFormData] = useState({
   username: '',
   bio: '',
@@ -239,19 +224,31 @@ const ProfilePage = () => {
   avatar: '🦁'
 });
 
-  // ✅ FIX 2: user load hone ke baad form update karo
+  const loadProfile = async () => {
+    setProfileLoading(true);
+    setProfileError("");
+    try {
+      const data = await fetchUserProfile();
+      setProfileData(data);
+      dispatch(setUser(data.user));
+      setFormData({
+        username: data.user.username || '',
+        bio: data.user.bio || '',
+        language: data.user.language || [],
+        github: data.user.github || '',
+        linkedin: data.user.linkedin || '',
+        avatar: data.user.avatar || '🦁',
+      });
+    } catch (err) {
+      setProfileError(err.response?.data?.message || "Failed to load profile data");
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
   useEffect(() => {
-  if (user) {
-    setFormData({
-      username: user.username || '',
-      bio: user.bio || '',
-      language: user.language || [],
-      github: user.github || '',
-      linkedin: user.linkedin || '',
-      avatar: user.avatar || '🦁'
-    });
-  }
-}, [user]);
+    loadProfile();
+  }, []);
 
   // ✅ optional UX: ESC se sidebar close
   useEffect(() => {
@@ -282,31 +279,24 @@ const ProfilePage = () => {
       [e.target.name]: e.target.value
     });
   };
-const dispatch = useDispatch();
-
 const handleSubmit = async (e) => {
   e.preventDefault();
-
+  setSaveError("");
   try {
-    const res = await axios.put("/api/user/update", formData, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`
-      }
-    });
-
-    dispatch(setUser(res.data.user));
-    alert("Profile Updated Successfully!");
+    const res = await updateUserProfile(formData);
+    dispatch(setUser(res.user));
+    await loadProfile();
     setIsEditSidebarOpen(false);
-
   } catch (err) {
-    console.log(err);
-    alert("Update failed");
+    setSaveError(err.response?.data?.message || "Update failed");
   }
 };
 
-  // ✅ FIX 3: SSR safe
-const profileUrl = typeof window !== "undefined"
-  ? `${window.location.origin}/user/${user?.username}`
+  const displayUser = profileData?.user || user;
+  const statsSummary = profileData?.statsSummary || [];
+
+  const profileUrl = typeof window !== "undefined"
+  ? `${window.location.origin}/user/${displayUser?.username || ""}`
   : "";
 
 const handleCopyLink = async () => {
@@ -320,11 +310,8 @@ const handleCopyLink = async () => {
 const [isShared, setIsShared] = useState(false);
 
 const handleLinkedInShare = () => {
-  // 1. Data collect karein (Rank aur Top 3 Skills)
-  const userRank = "#342"; // Ise dynamic user.rank se replace karein
-  const topSkills = formData.language.slice(0, 3).join(", ");
-  
-  // 2. Ek badhiya Professional Caption banayein
+  const userRank = profileData?.statsSummary?.[0]?.value || "Unranked";
+  const topSkills = (displayUser?.language || formData.language || []).slice(0, 3).join(", ");
   const caption = `🚀 Excited to share my technical profile on Level Up! 
 
 🏆 Global Rank: ${userRank}
@@ -346,13 +333,31 @@ const [activeTab, setActiveTab] = useState('Badges');
 
   // ✅ performance optimize
   const renderTabContent = useMemo(() => {
+    if (!profileData) return null;
     switch (activeTab) {
-      case 'Badges': return <BadgesSection />;
-      case 'Activity': return <ActivitySection />;
-      case 'Stats': return <StatsSection />;
+      case 'Badges': return <BadgesSection badgesData={profileData.badges || []} />;
+      case 'Activity': return <ActivitySection activityData={profileData.activity || []} />;
+      case 'Stats': return <StatsSection topicMasteryData={profileData.topicMastery || []} performanceInsights={profileData.performanceInsights || []} />;
       default: return null;
     }
-  }, [activeTab]);
+  }, [activeTab, profileData]);
+
+  if (profileLoading) {
+    return (
+      <div className="min-h-screen pt-24 flex items-center justify-center bg-gray-50 dark:bg-[#050816]">
+        <div className="w-10 h-10 rounded-full border-4 border-[#2563eb] border-t-transparent animate-spin" />
+      </div>
+    );
+  }
+
+  if (profileError) {
+    return (
+      <div className="min-h-screen pt-24 flex flex-col items-center justify-center bg-gray-50 dark:bg-[#050816] gap-4">
+        <p className="text-red-500 font-medium">{profileError}</p>
+        <button onClick={loadProfile} className="px-4 py-2 rounded-xl bg-[#2563eb] text-white text-sm font-bold">Retry</button>
+      </div>
+    );
+  }
 
   const handleSelectLanguage = (lang) => {
   if (!formData.language.includes(lang)) {
@@ -389,16 +394,16 @@ const handleRemoveLanguage = (lang) => {
                   transition={{ type: "spring", stiffness: 300, damping: 15 }}
                   className="w-36 h-36 rounded-full border-[6px] border-white dark:border-[#050816] bg-[#dbeafe] dark:bg-slate-800 flex items-center justify-center text-6xl shadow-xl cursor-pointer"
                 >
-                  {user?.avatar || '🦁'}
+                  {displayUser?.avatar || '🦁'}
                 </motion.div>
 
                 <div className="mb-2">
                   <h1 className="text-4xl font-black tracking-tight text-slate-900 dark:text-white">
-  {user?.username || "Username"}
+  {displayUser?.username || "Username"}
 </h1>
                   <div className="flex items-center gap-5 text-slate-500 dark:text-slate-400 text-sm mt-1.5">
-                    <span>📧 {user?.email || "email@example.com"}</span>
-                    <span>📅 Joined Sep 2024</span>
+                    <span>📧 {displayUser?.email || "email@example.com"}</span>
+                    <span>📅 Joined {displayUser?.joinedAt || "—"}</span>
                   </div>
                 </div>
               </div>
@@ -434,7 +439,7 @@ const handleRemoveLanguage = (lang) => {
                 <div className="space-y-3">
                   <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Personal Bio</h3>
                   <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed max-w-xl font-medium">
-                    {user?.bio || "No bio added yet"}
+                    {displayUser?.bio || "No bio added yet"}
                   </p>
                 </div>
 
@@ -444,7 +449,7 @@ const handleRemoveLanguage = (lang) => {
                   <div className="space-y-4">
                     <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Expertise</h3>
                     <div className="flex flex-wrap gap-2">
-                      {(user?.language || []).map((tech) => (
+                      {(displayUser?.language || []).map((tech) => (
   <span key={tech} className="px-3 py-1 bg-blue-50 dark:bg-blue-500/10 text-[#2563eb] dark:text-cyan-400 rounded-lg text-[10px] font-bold border">
     {tech}
   </span>
@@ -455,9 +460,9 @@ const handleRemoveLanguage = (lang) => {
                   {/* Social Profiles next to Expertise */}
                   <div className="flex gap-2.5">
   {/* GitHub */}
-  {formData.github && (
+  {displayUser?.github && (
     <a 
-      href={formData.github} 
+      href={displayUser.github} 
       target="_blank" 
       rel="noopener noreferrer"
       className="w-9 h-9 bg-slate-900 dark:bg-white/10 rounded-xl flex items-center justify-center text-[10px] text-white font-bold hover:scale-110 transition-transform shadow-md"
@@ -467,9 +472,9 @@ const handleRemoveLanguage = (lang) => {
   )}
 
   {/* LinkedIn */}
-  {formData.linkedin && (
+  {displayUser?.linkedin && (
     <a 
-      href={formData.linkedin} 
+      href={displayUser.linkedin} 
       target="_blank" 
       rel="noopener noreferrer"
       className="w-9 h-9 bg-[#0077b5] rounded-xl flex items-center justify-center text-[10px] text-white font-bold hover:scale-110 transition-transform shadow-md"
@@ -494,7 +499,7 @@ const handleRemoveLanguage = (lang) => {
                 {statsSummary.map((s, i) => (
                   <div key={i} className="bg-white dark:bg-white/5 border border-gray-100 dark:border-white/5 p-3 rounded-2xl flex items-center gap-3 shadow-sm hover:border-blue-200 dark:hover:border-cyan-500/30 transition-all group">
                     <div className="p-2 bg-gray-50 dark:bg-white/10 rounded-lg group-hover:scale-110 transition-transform flex-shrink-0">
-                      {s.icon}
+                      {iconMap[s.label]}
                     </div>
                     <div className="text-left overflow-hidden">
                       <div className="text-base font-black text-slate-900 dark:text-white leading-tight truncate">{s.value}</div>
@@ -549,9 +554,9 @@ const handleRemoveLanguage = (lang) => {
             {formData.avatar}
           </div>
           <div>
-            <h3 className="text-2xl font-black tracking-tight">{user?.username}</h3>
+            <h3 className="text-2xl font-black tracking-tight">{displayUser?.username}</h3>
             <p className="text-blue-100 text-xs font-bold uppercase tracking-widest opacity-80 flex items-center gap-2">
-              <Trophy size={12}/> Global Rank: #342
+              <Trophy size={12}/> Global Rank: {statsSummary[0]?.value || "Unranked"}
             </p>
           </div>
         </div>
@@ -635,6 +640,7 @@ const handleRemoveLanguage = (lang) => {
             ✕
           </button>
         </div>
+        {saveError && <p className="mb-4 text-sm text-red-500 font-medium">{saveError}</p>}
 
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Avatar Change */}

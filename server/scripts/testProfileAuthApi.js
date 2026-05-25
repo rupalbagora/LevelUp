@@ -116,6 +116,14 @@ const run = async () => {
   assert(res.status === 200, "Login with new password failed");
   console.log("✓ Login with reset password");
 
+  // 9. Google auth validation (missing credential)
+  res = await request("/api/auth/google", {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+  assert(res.status === 400, "Google auth should reject missing credential");
+  console.log("✓ POST /api/auth/google validation");
+
   console.log("\n=== All tests passed ===");
 };
 
