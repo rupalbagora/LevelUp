@@ -68,19 +68,13 @@ const Dashboard = () => {
             </p>
           </div>
           <motion.button
+            onClick={handleStartBattle}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="inline-flex items-center gap-2 bg-white text-slate-900 px-5 py-3 rounded-2xl font-semibold text-sm shadow-md hover:shadow-lg transition-shadow"
           >
-            {/* <PlayCircle className="w-5 h-5 text-[#2563eb]" /> */}
-            {/* <span>Start New Battle</span> */}
-            <button
-              onClick={handleStartBattle}
-              className="inline-flex items-center gap-2 bg-white text-slate-900 px-5 py-3 rounded-2xl font-semibold text-sm"
-            >
-              <PlayCircle className="w-5 h-5 text-[#2563eb]" />
-              Start New Battle
-            </button>
+            <PlayCircle className="w-5 h-5 text-[#2563eb]" />
+            <span>Start New Battle</span>
           </motion.button>
         </motion.section>
 

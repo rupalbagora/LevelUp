@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { Play, Send, Plus, CheckCircle, XCircle, Terminal } from "lucide-react";
-import { MOCK_TESTCASES } from "../../../utils/battleHelpers";
-import { useEffect } from "react";
 /**
  * ConsolePanel
  * Bottom half of the center panel.

@@ -169,7 +169,7 @@
 
 // export default LossResultScreen;
 
-export default function VictoryResultScreen({ result, players }) {
+export default function VictoryResultScreen({ result }) {
   if (!result) return null;
 
   let message;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo ,useRef} from 'react';
+import React, { useCallback, useState, useEffect, useMemo ,useRef} from 'react';
 import { useSelector } from "react-redux";
 import { Settings, Share2, Edit3, Trophy, Target, Award, Flame, Zap, Target as TargetIcon } from 'lucide-react';
 import { useDispatch } from "react-redux";
@@ -185,22 +185,6 @@ const StatsSection = ({ topicMasteryData = [], performanceInsights = [] }) => (
   </motion.div>
 );
  
-// --- PASSWORD STRENGTH CHECKER ---
-const getPasswordStrength = (password) => {
-  if (!password) return null;
-  const checks = {
-    length: password.length >= 8,
-    uppercase: /[A-Z]/.test(password),
-    lowercase: /[a-z]/.test(password),
-    number: /[0-9]/.test(password),
-    special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
-  };
-  const passed = Object.values(checks).filter(Boolean).length;
-  if (passed <= 2) return { label: 'Weak', color: 'bg-red-500', width: '33%', textColor: 'text-red-500' };
-  if (passed <= 4) return { label: 'Medium', color: 'bg-yellow-500', width: '66%', textColor: 'text-yellow-500' };
-  return { label: 'Strong', color: 'bg-green-500', width: '100%', textColor: 'text-green-500' };
-};
- 
 // --- MAIN PROFILE PAGE COMPONENT ---
 const ProfilePage = () => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -224,7 +208,7 @@ const ProfilePage = () => {
   avatar: '🦁'
 });
 
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     setProfileLoading(true);
     setProfileError("");
     try {
@@ -244,11 +228,11 @@ const ProfilePage = () => {
     } finally {
       setProfileLoading(false);
     }
-  };
+  }, [dispatch]);
 
   useEffect(() => {
     loadProfile();
-  }, []);
+  }, [loadProfile]);
 
   // ✅ optional UX: ESC se sidebar close
   useEffect(() => {
@@ -303,7 +287,7 @@ const handleCopyLink = async () => {
   try {
     await navigator.clipboard.writeText(profileUrl);
     alert("Profile link copied!");
-  } catch (err) {
+  } catch {
     alert("Copy failed!");
   }
 };

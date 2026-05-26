@@ -186,6 +186,7 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
       </div>
     </AnimatePresence>
   );
+  
 };
 
 export default ForgotPasswordModal;

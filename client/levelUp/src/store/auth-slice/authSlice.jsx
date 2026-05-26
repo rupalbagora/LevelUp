@@ -9,25 +9,31 @@ const initialState = {
 
 export const registerUser = createAsyncThunk(
   "/auth/register",
-  async (formData) => {
+  async (formData, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/auth/register`,
+        formData,
+        { withCredentials: true },
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || { message: "Registration failed" });
+    }
+  },
+);
+
+export const loginUser = createAsyncThunk("/auth/login", async (formData, { rejectWithValue }) => {
+  try {
     const response = await axios.post(
-      `${import.meta.env.VITE_API_URL}/api/auth/register`,
+      `${import.meta.env.VITE_API_URL}/api/auth/login`,
       formData,
       { withCredentials: true },
     );
     return response.data;
-  },
-);
-
-export const loginUser = createAsyncThunk("/auth/login", async (formData) => {
-  const response = await axios.post(
-    `${import.meta.env.VITE_API_URL}/api/auth/login`,
-    formData,
-    // console.log(formData),
-    { withCredentials: true },
-  );
-  console.log(response.data)
-  return response.data;
+  } catch (error) {
+    return rejectWithValue(error.response?.data || { message: "Login failed" });
+  }
 });
 
 export const logoutUser = createAsyncThunk("/auth/logout", async () => {
@@ -39,21 +45,42 @@ export const logoutUser = createAsyncThunk("/auth/logout", async () => {
   return response.data;
 });
 
-export const checkAuth = createAsyncThunk("/auth/checkauth", async () => {
-  const response = await axios.get(
-    `${import.meta.env.VITE_API_URL}/api/auth/check-auth`,
-    {
-      withCredentials: true,
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-        "Cache-Control":
-          "no-store, no-cache, must-revalidate, proxy-revalidate",
-        Expires: "0",
+export const checkAuth = createAsyncThunk("/auth/checkauth", async (_, { rejectWithValue }) => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.get(
+      `${import.meta.env.VITE_API_URL}/api/auth/check-auth`,
+      {
+        withCredentials: true,
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+          Expires: "0",
+        },
       },
-    },
-  );
-  return response.data;
+    );
+    return response.data;
+  } catch (error) {
+    return rejectWithValue(error.response?.data || { message: "Auth check failed" });
+  }
 });
+
+export const googleLogin = createAsyncThunk(
+  "/auth/google-login",
+  async ({ credential }, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/auth/google`,
+        { credential },
+        { withCredentials: true },
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || { message: "Google sign-in failed" });
+    }
+  },
+);
 
 const authSlice = createSlice({
   name: "auth",
@@ -79,6 +106,7 @@ const authSlice = createSlice({
         state.user = null;
         state.isAuthenticated = false;
       });
+      
 
     // Login
     builder
@@ -107,6 +135,7 @@ const authSlice = createSlice({
         state.user = null;
         state.isAuthenticated = false;
       });
+      
 
     // Logout
     builder.addCase(logoutUser.fulfilled, (state) => {
@@ -127,6 +156,27 @@ const authSlice = createSlice({
         state.isAuthenticated = action.payload.success ? true : false;
       })
       .addCase(checkAuth.rejected, (state) => {
+        state.isLoading = false;
+        state.user = null;
+        state.isAuthenticated = false;
+      });
+
+    builder
+      .addCase(googleLogin.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(googleLogin.fulfilled, (state, action) => {
+        state.isLoading = false;
+        if (action.payload.success) {
+          state.user = action.payload.user;
+          state.isAuthenticated = true;
+          localStorage.setItem("token", action.payload.user.token);
+        } else {
+          state.user = null;
+          state.isAuthenticated = false;
+        }
+      })
+      .addCase(googleLogin.rejected, (state) => {
         state.isLoading = false;
         state.user = null;
         state.isAuthenticated = false;

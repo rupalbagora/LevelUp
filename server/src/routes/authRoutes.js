@@ -1,4 +1,5 @@
 import express from "express"
+
 import {
   registerUser,
   loginUser,
@@ -18,14 +19,6 @@ router.post("/logout", logoutUser);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 router.post("/google", googleAuth);
-// router.get("/check-auth", protect, (req, res) => {
-//   const user = req.user;
-//   res.status(200).json({
-//     success: true,
-//     message: "Authenticated user!",
-//     user,
-//   });
-// });
 router.get("/check-auth", protect, checkAuth);
 router.get("/ban-status", protect, getBanStatus);
 export default router;

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AlertTriangle, Clock } from "lucide-react";
 import { useSelector } from "react-redux";
 import { getBanStatusAPI } from "../../services/banService";
@@ -16,15 +16,10 @@ export default function BanNotice() {
   const { isAuthenticated } = useSelector((state) => state.auth);
   const [banStatus, setBanStatus] = useState(null);
   const [remainingMs, setRemainingMs] = useState(0);
-
-  const serverOffsetMs = useMemo(() => {
-    if (!banStatus?.serverTime) return 0;
-    return Date.now() - new Date(banStatus.serverTime).getTime();
-  }, [banStatus?.serverTime]);
+  const serverOffsetMsRef = useRef(0);
 
   useEffect(() => {
     if (!isAuthenticated) {
-      setBanStatus(null);
       return;
     }
 
@@ -45,9 +40,12 @@ export default function BanNotice() {
 
   useEffect(() => {
     if (!banStatus?.bannedUntil) return;
+    serverOffsetMsRef.current = banStatus.serverTime
+      ? Date.now() - new Date(banStatus.serverTime).getTime()
+      : 0;
 
     const updateRemaining = () => {
-      const currentServerTime = Date.now() - serverOffsetMs;
+      const currentServerTime = Date.now() - serverOffsetMsRef.current;
       const nextRemainingMs =
         new Date(banStatus.bannedUntil).getTime() - currentServerTime;
 
@@ -62,9 +60,9 @@ export default function BanNotice() {
     const intervalId = setInterval(updateRemaining, 1000);
 
     return () => clearInterval(intervalId);
-  }, [banStatus?.bannedUntil, serverOffsetMs]);
+  }, [banStatus?.bannedUntil, banStatus?.serverTime]);
 
-  if (!banStatus) return null;
+  if (!isAuthenticated || !banStatus) return null;
 
   return (
     <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-red-900 shadow-sm dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100">

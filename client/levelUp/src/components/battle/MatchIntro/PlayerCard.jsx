@@ -4,7 +4,7 @@ import {
   getRankInfo,
 } from "../../../utils/battleHelpers";
 
-export default function PlayerCard({ player, side }) {
+export default function PlayerCard({ player }) {
   const initials = getInitials(player.username);
   const avatarColor = getAvatarColor(player.username);
   const rankInfo = getRankInfo(player.rank);

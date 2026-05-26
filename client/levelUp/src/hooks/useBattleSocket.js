@@ -8,7 +8,6 @@ export function useBattleSocket(battleId, userId, onSocketReady) {
   // ↑ accept a callback from orchestrator
   // ↑ accept a callback from orchestrator
   const socketRef = useRef(null);
-  const codeRef = useRef("");
   const onReadyCalled = useRef(false);
 
   const [battleState, setBattleState] = useState({
@@ -202,7 +201,7 @@ socket.on("battleEnded", (data) => {
       socket.disconnect();
       onReadyCalled.current = false;
     };
-  }, [battleId, userId]);
+  }, [battleId, userId, onSocketReady]);
 
   const startBattle = () => {
     setBattleState((prev) => ({ ...prev, phase: "battle" }));

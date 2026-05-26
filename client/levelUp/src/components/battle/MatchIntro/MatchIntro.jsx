@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import PlayerCard from "./PlayerCard";
 
 import {
@@ -18,22 +18,12 @@ export default function MatchIntro({ players, onComplete }) {
   const flashRef = useRef(null);
 
   const vsPulseAnim = useRef(null);
+  const runCountdownRef = useRef(null);
 
   const [countNum, setCountNum] = useState(null);
   const [showFight, setShowFight] = useState(false);
 
-  useEffect(() => {
-    animatePlayersIn(leftRef.current, rightRef.current, vsRef.current, () => {
-      vsPulseAnim.current = animateVSPulse(vsRef.current);
-      runCountdown(3);
-    });
-
-    return () => {
-      vsPulseAnim.current?.kill();
-    };
-  }, []);
-
-  function runCountdown(n) {
+  const runCountdown = useCallback((n) => {
     if (n === 0) {
       vsPulseAnim.current?.kill();
       setShowFight(true);
@@ -45,10 +35,29 @@ export default function MatchIntro({ players, onComplete }) {
 
     requestAnimationFrame(() => {
       if (countRef.current) {
-        animateCountdownNumber(countRef.current, () => runCountdown(n - 1));
+        animateCountdownNumber(countRef.current, () =>
+          runCountdownRef.current?.(n - 1),
+        );
       }
     });
-  }
+  }, []);
+  useEffect(() => {
+    runCountdownRef.current = runCountdown;
+    return () => {
+      runCountdownRef.current = null;
+    };
+  }, [runCountdown]);
+
+  useEffect(() => {
+    animatePlayersIn(leftRef.current, rightRef.current, vsRef.current, () => {
+      vsPulseAnim.current = animateVSPulse(vsRef.current);
+      runCountdown(3);
+    });
+
+    return () => {
+      vsPulseAnim.current?.kill();
+    };
+  }, [runCountdown]);
 
   useEffect(() => {
     if (showFight && fightRef.current && flashRef.current) {
@@ -56,7 +65,7 @@ export default function MatchIntro({ players, onComplete }) {
         onComplete?.(),
       );
     }
-  }, [showFight]);
+  }, [showFight, onComplete]);
 
   // MatchIntro.jsx ke return statement mein ye change karein
 // MatchIntro.jsx

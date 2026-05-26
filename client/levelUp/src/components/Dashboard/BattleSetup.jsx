@@ -4,21 +4,15 @@ import {
   ChevronLeft,
   Zap,
   Copy,
-  Share2,
   Swords,
   CheckCircle2,
-  Lock,
   Loader2,
-  XCircle,
-  Clock,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
-import { createBattleAPI, joinBattleAPI } from "../../services/battleService";
+import { createBattleAPI } from "../../services/battleService";
 import { io } from "socket.io-client";
 
 const BattleSetup = () => {
-  const { user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
 
   // --- States ---
@@ -42,7 +36,7 @@ const BattleSetup = () => {
         setBattleId(data.battleId);
         setStep(3);
       }
-    } catch (err) {
+    } catch {
       alert("Link is unable to Generate. Please check if you're logged in!");
     } finally {
       setIsGenerating(false);
@@ -126,13 +120,6 @@ const BattleSetup = () => {
   //     console.error("Expiry update failed");
   //   }
   // };
-
-  // Timer format helper (02:00)
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
-  };
 
   useEffect(() => {
     return () => socketRef.current?.disconnect();
