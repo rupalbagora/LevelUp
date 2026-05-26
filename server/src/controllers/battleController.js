@@ -1,4 +1,5 @@
 import Battle from "../models/Battle.js";
+import { findActiveBlackCard } from "./cheatController.js";
 
 export const createBattle = async (req, res) => {
   try {
@@ -6,6 +7,14 @@ export const createBattle = async (req, res) => {
 if (!topic || !difficulty) {
   return res.status(400).json({ message: "Topic and difficulty required" });
 }
+
+    const activeBlackCard = await findActiveBlackCard(req.user);
+    if (activeBlackCard) {
+      return res.status(403).json({
+        message: "User is banned for cheating",
+        bannedUntil: activeBlackCard.expiresAt,
+      });
+    }
 
     const battle = await Battle.create({
       topic,

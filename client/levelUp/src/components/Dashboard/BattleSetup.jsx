@@ -43,7 +43,7 @@ const BattleSetup = () => {
         setStep(3);
       }
     } catch (err) {
-      alert("Link generate nahi ho payi. Please check if you're logged in!");
+      alert("Link is unable to Generate. Please check if you're logged in!");
     } finally {
       setIsGenerating(false);
     }

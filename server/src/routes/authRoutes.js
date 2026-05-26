@@ -5,6 +5,7 @@ import {
   logoutUser,
   checkAuth
 } from "../controllers/authController.js";
+import { getBanStatus } from "../controllers/cheatController.js";
 import protect from "../middlewares/authMiddleware.js";
 const router = express.Router();
 
@@ -20,4 +21,5 @@ router.post("/logout", logoutUser);
 //   });
 // });
 router.get("/check-auth", protect, checkAuth);
+router.get("/ban-status", protect, getBanStatus);
 export default router;

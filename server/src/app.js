@@ -3,6 +3,7 @@ import cors from "cors";
 import connectDB from "./config/db.js"
 import authRoutes from "./routes/authRoutes.js";
 import battleRoutes from "./routes/battleRoutes.js";
+import cheatRoutes from "./routes/cheatRoutes.js";
 import leaderboardRoutes from "./routes/leaderRoutes.js"
 import executeRoutes from "./routes/executeRoutes.js"
 import cookieParser from 'cookie-parser'
@@ -25,6 +26,7 @@ app.get("/test", (req, res) => {
 
 app.use("/api/auth",authRoutes);
 app.use("/api/battle", battleRoutes);
+app.use("/api/battle", cheatRoutes);
 app.use("/api/leaderboard", leaderboardRoutes);
 app.use("/api", executeRoutes);
 connectDB();

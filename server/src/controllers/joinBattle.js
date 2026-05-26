@@ -1,9 +1,18 @@
 import Battle from "../models/Battle.js";
 import Question from "../models/question.js";
 import { io } from "../../server.js";
+import { findActiveBlackCard } from "./cheatController.js";
 export const joinBattle = async (req, res) => {
   try {
     const { battleId } = req.params;
+
+    const activeBlackCard = await findActiveBlackCard(req.user);
+    if (activeBlackCard) {
+      return res.status(403).json({
+        message: "User is banned for cheating",
+        bannedUntil: activeBlackCard.expiresAt,
+      });
+    }
 
     const existingBattle = await Battle.findById(battleId);
     console.log(".....", existingBattle);

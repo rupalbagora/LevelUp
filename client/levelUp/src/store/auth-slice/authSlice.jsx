@@ -45,6 +45,7 @@ export const checkAuth = createAsyncThunk("/auth/checkauth", async () => {
     {
       withCredentials: true,
       headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
         "Cache-Control":
           "no-store, no-cache, must-revalidate, proxy-revalidate",
         Expires: "0",
@@ -84,10 +85,22 @@ const authSlice = createSlice({
       .addCase(loginUser.pending, (state) => {
         state.isLoading = true;
       })
+      // .addCase(loginUser.fulfilled, (state, action) => {
+      //   state.isLoading = false;
+      //   state.user = action.payload.success ? action.payload.user : null;
+      //   state.isAuthenticated = action.payload.success ? true : false;
+      // })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.user = action.payload.success ? action.payload.user : null;
-        state.isAuthenticated = action.payload.success ? true : false;
+        if (action.payload.success) {
+          state.user = action.payload.user;
+          state.isAuthenticated = true;
+          // ✅ Token store karo
+          localStorage.setItem("token", action.payload.user.token);
+        } else {
+          state.user = null;
+          state.isAuthenticated = false;
+        }
       })
       .addCase(loginUser.rejected, (state) => {
         state.isLoading = false;
@@ -100,6 +113,7 @@ const authSlice = createSlice({
       state.isLoading = false;
       state.user = null;
       state.isAuthenticated = false;
+      localStorage.removeItem("token");
     });
 
     // Check Auth
