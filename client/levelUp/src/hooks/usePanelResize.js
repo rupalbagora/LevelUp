@@ -65,7 +65,7 @@ export function usePanelResize(initialSizes, minPercent = 10) {
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("mouseup", onMouseUp);
     };
-  }, []); // intentionally empty — we read dragging.current by ref
+  }, [minPercent]);
 
   return { sizes, startDrag, setSizes };
 }

@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { animateProblemIn } from "../../../utils/gsapAnimations";
 import { getDifficultyColor } from "../../../utils/battleHelpers";
-import { BookOpen, FileText, Users } from "lucide-react";
+import { FileText } from "lucide-react";
 
 const TABS = [
-  { id: "description", label: "Description", icon: FileText }
+  { id: "description", label: "Description", icon: <FileText size={12} /> }
   
 ];
 
@@ -27,7 +27,7 @@ export default function ProblemStatement({ problem }) {
     <div ref={panelRef} className="flex flex-col h-full bg-white dark:bg-[#1a1a1a]">
       {/* Tab Bar */}
       <div className="flex border-b border-slate-200 dark:border-[#3a3a3a] bg-slate-50 dark:bg-[#282828] select-none">
-        {TABS.map(({ id, label, icon: Icon }) => (
+        {TABS.map(({ id, label, icon }) => (
           <button
             key={id}
             onClick={() => setActiveTab(id)}
@@ -37,7 +37,7 @@ export default function ProblemStatement({ problem }) {
                 : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
             }`}
           >
-            <Icon size={12} />
+            {icon}
             {label}
           </button>
         ))}
@@ -117,34 +117,6 @@ export default function ProblemStatement({ problem }) {
                 </ul>
               </div>
             )}
-          </div>
-        )}
-
-        {activeTab === "editorial" && (
-          <div className="p-5">
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <BookOpen size={32} className="text-slate-300 dark:text-slate-600 mb-3" />
-              <h3 className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-1">
-                Editorial
-              </h3>
-              <p className="text-xs text-slate-400 dark:text-slate-500">
-                Step-by-step editorial will appear here after the battle.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {activeTab === "solutions" && (
-          <div className="p-5">
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Users size={32} className="text-slate-300 dark:text-slate-600 mb-3" />
-              <h3 className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-1">
-                Community Solutions
-              </h3>
-              <p className="text-xs text-slate-400 dark:text-slate-500">
-                Top-rated community solutions are locked during battle mode.
-              </p>
-            </div>
           </div>
         )}
       </div>

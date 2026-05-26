@@ -1,11 +1,14 @@
 import React from "react";
 import { Swords } from "lucide-react";
+import { useSelector } from "react-redux";
+
 const Welcome = () => {
+  const { user } = useSelector((state) => state.auth);
   return (
     <div className="bg-blue-600 text-white rounded-xl shadow-xl p-6 px-10 flex items-center justify-between my-10">
       {/* Left content */}
       <div>
-        <h2 className="text-3xl font-bold mb-2">Welcome back, Rupal! 👋</h2>
+        <h2 className="text-3xl font-bold mb-2">Welcome back, {user?.username || "Warrior"}! 👋</h2>
         <p className="text-blue-100">Ready to start your next challenge?</p>
       </div>
 

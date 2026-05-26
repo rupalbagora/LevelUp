@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Swords, XCircle, Zap, ShieldAlert } from "lucide-react";
@@ -68,7 +68,7 @@ const OpponentMatchIntro = () => {
       if (res.status === "ongoing" || res.message?.includes("started")) {
         navigate(`/battle/${battleId}`);
       }
-    } catch (err) {
+    } catch {
       // 🛠️ FAIL-SAFE: Yahan setBattleData ki jagah navigate hona chahiye!
       // Agar countdown ki wajah se API fail ho, toh bhi Arena ke andar bhej do.
       console.log("Forcing navigation to arena via catch...");
@@ -80,7 +80,7 @@ const OpponentMatchIntro = () => {
     try {
       await terminateBattleAPI(battleId);
       navigate("/dashboard");
-    } catch (err) {
+    } catch {
       navigate("/dashboard");
     }
   };

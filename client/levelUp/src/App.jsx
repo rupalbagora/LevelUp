@@ -1,3 +1,6 @@
+import ForgotPassword from "./components/auth/ForgetPassword";
+import ResetPassword from "./components/auth/ResetPassword";
+
 import { Routes, Route } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
@@ -17,8 +20,7 @@ import OpponentMatchIntro from "./components/battle/MatchIntro/OpponentMatchIntr
 import ProfilePage from "./components/layout/ProfilePage";
 
 function App() {
-  const { user, isAuthenticated, isLoading } = useSelector((state) => state.auth);
-  console.log("hello", user);
+  const { isAuthenticated, isLoading } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
 
   // On every app load, ask the server "is this user still valid?"
@@ -52,10 +54,13 @@ function App() {
             }
           />
           {/* YE WALA LINE ADD KARO */}
-          <Route path="/profile" 
-           element={
-           <ProfilePage />
-           } 
+          <Route
+            path="/profile"
+            element={
+              <CheckAuth isAuthenticated={isAuthenticated}>
+                <ProfilePage />
+              </CheckAuth>
+            }
           />
 
           <Route
@@ -69,7 +74,10 @@ function App() {
         </Route>
 
         {/* --- GROUP 2: In pages par Navbar/Footer NAHI dikhega --- */}
-        
+        {/* Forgot & Reset Password Routes */}
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
+
         {/* Signin Page */}
         <Route
           path="/signin"
@@ -106,5 +114,6 @@ function App() {
     </div>
   );
 }
+
 
 export default App;

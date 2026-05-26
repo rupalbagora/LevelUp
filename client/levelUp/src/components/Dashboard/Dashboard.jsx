@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion"; // Added Framer Motion
 // Lucide icons for both Navbar and Dashboard
 import { Target, Award, Flame, Crown, PlayCircle, Trophy, User, LogOut, LayoutDashboard, Zap, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import BanNotice from "../common/BanNotice";
+import { fetchUserProfile } from "../../services/profileService";
 
 // --- Animation Variants (Settings) ---
 const topAnim = { hidden: { opacity: 0, y: -50 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6 } } };
@@ -15,6 +16,19 @@ const bottomAnim = { hidden: { opacity: 0, y: 50 }, visible: { opacity: 1, y: 0,
 const Dashboard = () => {
   const { user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
+  const [profileStats, setProfileStats] = useState(null);
+
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const data = await fetchUserProfile();
+        setProfileStats(data);
+      } catch {
+        setProfileStats(null);
+      }
+    };
+    if (user) loadStats();
+  }, [user]);
 
   const handleStartBattle = () => {
     if (!user) {
@@ -23,9 +37,13 @@ const Dashboard = () => {
       navigate("/battle-setup"); // logged in → go straight to setup
     }
   };
-  const winRate = user?.totalBattles
+  const winRate = profileStats?.winRate ?? (user?.totalBattles
     ? Math.round((user.totalWins / user.totalBattles) * 100)
-    : 0;
+    : 0);
+  const globalRank = profileStats?.statsSummary?.find((s) => s.label === "Global Rank")?.value ?? "Unranked";
+  const currentStreak = profileStats?.currentStreak ?? 0;
+  const battleHistory = profileStats?.battleHistory ?? [];
+  const topicMastery = profileStats?.topicMastery ?? [];
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#050816] text-slate-900 dark:text-slate-100 font-sans overflow-x-hidden">
       <main className="max-w-7xl mx-auto px-6 pt-24 md:pt-28 pb-10 space-y-8">
@@ -44,26 +62,19 @@ const Dashboard = () => {
             </p>
             <h1 className="text-2xl md:text-3xl font-black tracking-tight mb-1">
               {user?.username}
-              {console.log(user?.username)}
             </h1>
             <p className="text-sm md:text-base text-white/80">
               Ready to start your next coding battle?
             </p>
           </div>
           <motion.button
+            onClick={handleStartBattle}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="inline-flex items-center gap-2 bg-white text-slate-900 px-5 py-3 rounded-2xl font-semibold text-sm shadow-md hover:shadow-lg transition-shadow"
           >
-            {/* <PlayCircle className="w-5 h-5 text-[#2563eb]" /> */}
-            {/* <span>Start New Battle</span> */}
-            <button
-              onClick={handleStartBattle}
-              className="inline-flex items-center gap-2 bg-white text-slate-900 px-5 py-3 rounded-2xl font-semibold text-sm"
-            >
-              <PlayCircle className="w-5 h-5 text-[#2563eb]" />
-              Start New Battle
-            </button>
+            <PlayCircle className="w-5 h-5 text-[#2563eb]" />
+            <span>Start New Battle</span>
           </motion.button>
         </motion.section>
 
@@ -119,7 +130,7 @@ const Dashboard = () => {
                 <Flame className="w-4 h-4" />
               </div>
             </div>
-            <p className="text-2xl font-bold">5</p>
+            <p className="text-2xl font-bold">{currentStreak}</p>
           </motion.div>
 
           <motion.div
@@ -136,7 +147,7 @@ const Dashboard = () => {
                 <Crown className="w-4 h-4" />
               </div>
             </div>
-            <p className="text-2xl font-bold">#342</p>
+            <p className="text-2xl font-bold">{globalRank}</p>
           </motion.div>
         </section>
 
@@ -273,26 +284,12 @@ const Dashboard = () => {
             </div>
 
             <div className="space-y-3">
-              {[
-                {
-                  opponent: "CodeNinja92",
-                  result: "Won",
-                  time: "2m 45s",
-                  difficulty: "Binary Search · Medium",
-                },
-                {
-                  opponent: "AlgoMaster",
-                  result: "Lost",
-                  time: "5m 12s",
-                  difficulty: "Dynamic Programming · Hard",
-                },
-                {
-                  opponent: "DevWarrior",
-                  result: "Won",
-                  time: "3m 30s",
-                  difficulty: "Arrays · Easy",
-                },
-              ].map((battle, idx) => (
+              {battleHistory.length === 0 && (
+                <p className="text-sm text-slate-500 dark:text-slate-400 py-4 text-center">
+                  No battle history yet. Start your first battle!
+                </p>
+              )}
+              {battleHistory.map((battle, idx) => (
                 <div
                   key={idx}
                   className="flex items-center justify-between rounded-2xl border border-slate-200 dark:border-white/5 px-4 py-3 bg-slate-50/60 dark:bg-white/5"
@@ -343,23 +340,23 @@ const Dashboard = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[
-              { label: "Arrays & Strings", value: 12, percent: "100%" }, // 12 khele (Target 10 se zyada)
-              { label: "Binary Search", value: 8, percent: "80%" }, // 8/10 = 80%
-              { label: "Dynamic Programming", value: 5, percent: "50%" }, // 5/10 = 50%
-              { label: "Trees & Graphs", value: 9, percent: "90%" }, // 9/10 = 90%
-            ].map((topic, idx) => (
+            {topicMastery.length === 0 && (
+              <p className="text-sm text-slate-500 dark:text-slate-400 col-span-2">
+                Complete battles to track topic mastery.
+              </p>
+            )}
+            {topicMastery.map((topic, idx) => (
               <div key={idx} className="space-y-2">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-medium">{topic.label}</span>
+                  <span className="font-medium">{topic.topic}</span>
                   <span className="text-slate-500 dark:text-slate-400">
-                    {topic.value} battles
+                    {topic.completed} battles · {topic.progress}%
                   </span>
                 </div>
                 <div className="h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
-                    animate={{ width: topic.percent }}
+                    animate={{ width: `${topic.progress}%` }}
                     transition={{ duration: 1, delay: 0.6 }}
                     className="h-full bg-linear-to-r from-[#2563eb] via-[#4f46e5] to-[#7c3aed] rounded-full"
                   />

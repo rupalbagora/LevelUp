@@ -193,11 +193,16 @@ export default function BattleArena({
   }, [handleCheatDetection]);
 useEffect(() => {
   if (!problem) return;
-console.log("FINAL PROBLEM:", problem);
   const starter = generateStarterCode(problem, language);
-  console.log("Generated starter:", starter);
-  setCode(starter);
-  
+  let cancelled = false;
+
+  queueMicrotask(() => {
+    if (!cancelled) setCode(starter);
+  });
+
+  return () => {
+    cancelled = true;
+  };
 }, [problem, language]);
 
   const handleCodeChange = useCallback(
@@ -338,8 +343,6 @@ async function handleSubmit() {
     // Hidden panels
     return { width: 0, minWidth: 0, overflow: "hidden", display: "flex", flexDirection: "column" };
   }
-
-  const panelNames = ["left", "center", "right"];
 
   return (
     <div

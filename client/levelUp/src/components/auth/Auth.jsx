@@ -2,6 +2,7 @@
 import { useState } from "react";
 import RegisterForm from "./RegisterForm";
 import LoginForm from "./LoginForm";
+import GoogleSignInButton from "./GoogleSignInButton";
 import BackButton from "../common/BackButton";
 import { Swords } from "lucide-react";
 import { motion } from "framer-motion";
@@ -145,6 +146,19 @@ const Auth = () => {
         </div>
 
         {activeTab === "signin" ? <LoginForm /> : <RegisterForm />}
+
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-slate-200 dark:border-white/10" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-white dark:bg-[#0b0f1f] px-3 text-slate-400 tracking-widest font-bold">
+              Or continue with
+            </span>
+          </div>
+        </div>
+
+        <GoogleSignInButton />
       </motion.div>
     </section>
   );

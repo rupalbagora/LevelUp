@@ -15,7 +15,19 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
+      required: function () {
+        return !this.googleId;
+      },
+    },
+    googleId: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
+    authProvider: {
+      type: String,
+      enum: ["local", "google"],
+      default: "local",
     },
     rank: {
       type: String,
@@ -29,8 +41,38 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    bio: {
+      type: String,
+      default: "",
+      maxlength: 500,
+    },
+    language: {
+      type: [String],
+      default: [],
+    },
+    github: {
+      type: String,
+      default: "",
+    },
+    linkedin: {
+      type: String,
+      default: "",
+    },
+    avatar: {
+      type: String,
+      default: "🦁",
+    },
+    
+    resetPasswordToken: {
+      type: String,
+      default: null,
+    },
+    resetPasswordExpire: {
+      type: Date,
+      default: null,
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export default mongoose.model("User", userSchema);
