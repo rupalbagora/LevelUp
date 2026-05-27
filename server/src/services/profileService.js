@@ -1,5 +1,5 @@
 import Battle from "../models/Battle.js";
-import Leaderboard from "../models/leaderboard.js";
+import Leaderboard from "../models/Leaderboard.js";
 import User from "../models/User.js";
 
 const formatRelativeTime = (date) => {
