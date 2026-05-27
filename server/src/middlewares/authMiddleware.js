@@ -1,6 +1,10 @@
 import jwt from "jsonwebtoken";
 
 const protect = (req, res, next) => {
+  console.log("----- PROTECT -----");
+  console.log("URL:", req.originalUrl);
+  console.log("cookies:", req.cookies);
+  console.log("headers:", req.headers.cookie);
   let token = req.cookies.token;
 
   if (
