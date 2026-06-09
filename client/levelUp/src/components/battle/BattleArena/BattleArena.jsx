@@ -26,6 +26,7 @@ function DragHandle({ onMouseDown }) {
     <div
       onMouseDown={onMouseDown}
       className="
+        hidden md:block
         relative w-1 flex-shrink-0 cursor-col-resize
         bg-slate-200 dark:bg-[#3a3a3a]
         hover:bg-[#7000ff]/60 active:bg-[#7000ff]
@@ -324,30 +325,24 @@ async function handleSubmit() {
   function getColStyle(panel) {
     if (!maximized) {
       return {
-        width: `${cols[["left","center","right"].indexOf(panel)]}%`,
+        "--panel-width": `${cols[["left","center","right"].indexOf(panel)]}%`,
         minWidth: 0,
-        overflow: "hidden",
-        display: "flex",
-        flexDirection: "column",
       };
     }
     if (maximized === panel) {
       return {
         flex: "1 1 auto",
         minWidth: 0,
-        overflow: "hidden",
-        display: "flex",
-        flexDirection: "column",
       };
     }
     // Hidden panels
-    return { width: 0, minWidth: 0, overflow: "hidden", display: "flex", flexDirection: "column" };
+    return { "--panel-width": "0px", minWidth: 0 };
   }
 
   return (
     <div
       ref={arenaRef}
-      className="flex flex-col h-screen bg-white dark:bg-[#1a1a1a] text-slate-900 dark:text-slate-200 overflow-hidden"
+      className="flex flex-col h-[100dvh] bg-white dark:bg-[#1a1a1a] text-slate-900 dark:text-slate-200 overflow-hidden"
     >
       {/* ✅ ADD HERE */}
       {submissionStatus === "submitting" && (
@@ -385,11 +380,17 @@ async function handleSubmit() {
       </div>
 
       {/* 3-panel grid row */}
-      <div id="battle-arena-grid" className="flex flex-1 overflow-hidden">
+      <div id="battle-arena-grid" className="flex flex-col md:flex-row flex-1 overflow-y-auto md:overflow-hidden">
         {/* ── LEFT: Problem Statement ── */}
         <div
           style={getColStyle("left")}
-          className="border-r border-slate-200 dark:border-[#3a3a3a]"
+          className={`
+            ${maximized && maximized !== "left" ? "hidden" : "flex flex-col"}
+            w-full md:w-[var(--panel-width)]
+            min-h-[45vh] md:min-h-0
+            border-b md:border-b-0 md:border-r border-slate-200 dark:border-[#3a3a3a]
+            overflow-hidden
+          `}
         >
           {/* Panel header bar */}
           <div className="flex items-center justify-between px-3 py-1.5 border-b border-slate-200 dark:border-[#3a3a3a] bg-slate-50 dark:bg-[#282828] flex-shrink-0">
@@ -413,7 +414,13 @@ async function handleSubmit() {
         <div
           id="center-panel"
           style={getColStyle("center")}
-          className="border-r border-slate-200 dark:border-[#3a3a3a]"
+          className={`
+            ${maximized && maximized !== "center" ? "hidden" : "flex flex-col"}
+            w-full md:w-[var(--panel-width)]
+            h-[75vh] md:h-auto
+            border-b md:border-b-0 md:border-r border-slate-200 dark:border-[#3a3a3a]
+            overflow-hidden
+          `}
         >
           {/* Panel header bar */}
           <div className="flex items-center justify-between px-3 py-1.5 border-b border-slate-200 dark:border-[#3a3a3a] bg-slate-50 dark:bg-[#282828] flex-shrink-0">
@@ -466,7 +473,15 @@ async function handleSubmit() {
         {!maximized && <DragHandle onMouseDown={(e) => startColDrag(1, e)} />}
 
         {/* ── RIGHT: AI Hint + Opponent ── */}
-        <div style={getColStyle("right")}>
+        <div 
+          style={getColStyle("right")}
+          className={`
+            ${maximized && maximized !== "right" ? "hidden" : "flex flex-col"}
+            w-full md:w-[var(--panel-width)]
+            min-h-[45vh] md:min-h-0
+            overflow-hidden
+          `}
+        >
           {/* Panel header bar */}
           <div className="flex items-center justify-between px-3 py-1.5 border-b border-slate-200 dark:border-[#3a3a3a] bg-slate-50 dark:bg-[#282828] flex-shrink-0">
             <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">

@@ -151,4 +151,32 @@ Open `http://localhost:5173` → Sign In / Sign Up → test email or Google flow
 
 ---
 
-*Last verified: all 9 automated API tests passed with server on port 5000 and MongoDB Atlas connected.*
+*Last verified: all 11 automated API tests passed with server on port 5000 and MongoDB Atlas connected.*
+
+---
+
+## 9. Daily Streak + Live Leaderboard (Latest)
+
+### Daily Streak (LeetCode-style green boxes)
+
+| Item | Detail |
+|------|--------|
+| **Backend** | `server/src/services/activityService.js` |
+| **User fields** | `lastActiveDate`, `currentDailyStreak`, `longestDailyStreak`, `activityLog[]` |
+| **Recorded on** | Login, Google login, battle complete (both players) |
+| **Profile API** | Returns `dailyStreak`, `activityCalendar` (5×7 green grid), `currentWinStreak` (battle wins) |
+| **Dashboard** | Fake random grid removed → real dynamic calendar + **Daily Streak** stat |
+| **Profile page** | Stat label changed to **Daily Streak** |
+
+**Green box intensity:** 0 = none, 1 = 1 activity, 2 = 2–3, 3 = 4+
+
+### Live Leaderboard
+
+| Item | Detail |
+|------|--------|
+| **Removed** | 10-second polling + "Auto updates every 10 seconds" text |
+| **Added** | Socket.io event `leaderboard:updated` after every battle |
+| **Frontend** | `LeaderboardPage` listens via socket — instant rank updates |
+| **Fix** | `/api/leaderboard/me` returns 200 Unranked instead of 404 for new users |
+
+**Run tests:** `cd LevelUp/server && npm test` (11 checks)

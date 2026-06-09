@@ -1,6 +1,45 @@
 import Leaderboard from "../models/Leaderboard.js";
 import User from "../models/User.js";
 import Battle from "../models/Battle.js";
+import { recordDailyActivity } from "./activityService.js";
+
+let ioRef = null;
+
+export const setLeaderboardSocket = (io) => {
+  ioRef = io;
+};
+
+const formatLeaderboardEntry = (entry, fallbackRank) => ({
+  rankPosition: entry.rankPosition || fallbackRank,
+  username: entry.userId?.username || "Unknown Player",
+  score: entry.score || 0,
+  totalWins: entry.userId?.totalWins || 0,
+  totalBattles: entry.userId?.totalBattles || 0,
+});
+
+export const fetchLeaderboardSnapshot = async () => {
+  const leaderboard = await Leaderboard.find()
+    .sort({ rankPosition: 1, score: -1, lastUpdated: 1 })
+    .populate("userId", "username totalWins totalBattles");
+
+  return leaderboard.map((entry, index) =>
+    formatLeaderboardEntry(entry, index + 1),
+  );
+};
+
+const emitLeaderboardUpdate = async () => {
+  if (!ioRef) return;
+
+  try {
+    const leaderboard = await fetchLeaderboardSnapshot();
+    ioRef.emit("leaderboard:updated", {
+      leaderboard,
+      updatedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error("emitLeaderboardUpdate:", error.message);
+  }
+};
 
 /* ------------------ HELPERS ------------------ */
 
@@ -82,4 +121,11 @@ export const updateLeaderboardAfterBattle = async (battleId) => {
 
   // Recalculate ranks
   await recalculateRanks();
+
+  // Daily activity for both players
+  await recordDailyActivity(creatorId);
+  await recordDailyActivity(opponentId);
+
+  // Live leaderboard broadcast
+  await emitLeaderboardUpdate();
 };

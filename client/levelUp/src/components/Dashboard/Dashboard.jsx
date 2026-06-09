@@ -41,9 +41,17 @@ const Dashboard = () => {
     ? Math.round((user.totalWins / user.totalBattles) * 100)
     : 0);
   const globalRank = profileStats?.statsSummary?.find((s) => s.label === "Global Rank")?.value ?? "Unranked";
-  const currentStreak = profileStats?.currentStreak ?? 0;
+  const dailyStreak = profileStats?.dailyStreak ?? profileStats?.currentStreak ?? 0;
+  const activityCalendar = profileStats?.activityCalendar;
   const battleHistory = profileStats?.battleHistory ?? [];
   const topicMastery = profileStats?.topicMastery ?? [];
+
+  const getHeatmapClass = (level) => {
+    if (level === 0) return "bg-slate-100 dark:bg-white/5";
+    if (level === 1) return "bg-emerald-500/30";
+    if (level === 2) return "bg-emerald-500/60";
+    return "bg-emerald-500";
+  };
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#050816] text-slate-900 dark:text-slate-100 font-sans overflow-x-hidden">
       <main className="max-w-7xl mx-auto px-6 pt-24 md:pt-28 pb-10 space-y-8">
@@ -124,13 +132,16 @@ const Dashboard = () => {
           >
             <div className="flex items-center justify-between mb-3">
               <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                Current Streak
+                Daily Streak
               </p>
               <div className="p-2 rounded-xl bg-amber-50 dark:bg-white/5 text-amber-500 dark:text-amber-400">
                 <Flame className="w-4 h-4" />
               </div>
             </div>
-            <p className="text-2xl font-bold">{currentStreak}</p>
+            <p className="text-2xl font-bold">{dailyStreak}</p>
+            <p className="text-[10px] text-slate-400 mt-1 font-semibold">
+              Best: {activityCalendar?.longestDailyStreak ?? 0} days
+            </p>
           </motion.div>
 
           <motion.div
@@ -188,34 +199,29 @@ const Dashboard = () => {
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-emerald-500" />
                 <h3 className="text-xs font-bold uppercase tracking-widest">
-                  Monthly Progress
+                  Daily Activity
                 </h3>
               </div>
               <span className="text-[10px] font-bold text-slate-400">
-                MARCH
+                {activityCalendar?.monthLabel || "LAST 35 DAYS"}
               </span>
             </div>
             <div className="flex gap-1.5 justify-center">
-              {/* Generating 5 weeks for 1 month */}
-              {Array.from({ length: 5 }).map((_, weekIdx) => (
+              {(activityCalendar?.weeks || Array.from({ length: 5 }, () =>
+                Array.from({ length: 7 }, () => ({ date: "", level: 0, count: 0 })),
+              )).map((week, weekIdx) => (
                 <div key={weekIdx} className="flex flex-col gap-1.5">
-                  {Array.from({ length: 7 }).map((_, dayIdx) => {
-                    const level = Math.floor(Math.random() * 4);
-                    return (
-                      <div
-                        key={dayIdx}
-                        className={`w-3.5 h-3.5 rounded-sm ${
-                          level === 0
-                            ? "bg-slate-100 dark:bg-white/5"
-                            : level === 1
-                              ? "bg-emerald-500/30"
-                              : level === 2
-                                ? "bg-emerald-500/60"
-                                : "bg-emerald-500"
-                        }`}
-                      />
-                    );
-                  })}
+                  {week.map((day, dayIdx) => (
+                    <div
+                      key={`${weekIdx}-${dayIdx}`}
+                      title={
+                        day.date
+                          ? `${day.date}: ${day.count || 0} activit${day.count === 1 ? "y" : "ies"}`
+                          : "No activity"
+                      }
+                      className={`w-3.5 h-3.5 rounded-sm ${getHeatmapClass(day.level || 0)}`}
+                    />
+                  ))}
                 </div>
               ))}
               <div className="ml-4 flex flex-col justify-center gap-1 text-[9px] font-bold text-slate-400 uppercase">

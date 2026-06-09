@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { OAuth2Client } from "google-auth-library";
+import { recordDailyActivity } from "../services/activityService.js";
 import {
   validateForgotPasswordInput,
   validateLoginInput,
@@ -20,8 +21,7 @@ const createToken = (user) =>
 const setAuthCookie = (res, token) => {
   res.cookie("token", token, {
     httpOnly: true,
-    // secure: process.env.NODE_ENV === "production",
-    secure:true,
+    secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
     maxAge: 7 * 24 * 60 * 60 * 1000,
@@ -101,6 +101,7 @@ export const loginUser = async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid Password" });
     }
 
+    await recordDailyActivity(user._id);
     return sendAuthResponse(res, user);
   } catch (error) {
     return res.status(500).json({ success: false, message: "Login failed" });
@@ -232,6 +233,7 @@ export const googleAuth = async (req, res) => {
       });
     }
 
+    await recordDailyActivity(user._id);
     return sendAuthResponse(res, user, "Google sign-in successful");
   } catch (error) {
     return res.status(401).json({ success: false, message: "Google sign-in failed" });

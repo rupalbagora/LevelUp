@@ -1,6 +1,14 @@
 import Leaderboard from "../models/Leaderboard.js";
 import User from "../models/User.js";
 
+const formatLeaderboardEntry = (entry, fallbackRank) => ({
+  rankPosition: entry.rankPosition || fallbackRank,
+  username: entry.userId?.username || "Unknown Player",
+  score: entry.score || 0,
+  totalWins: entry.userId?.totalWins || 0,
+  totalBattles: entry.userId?.totalBattles || 0,
+});
+
 /**
  * GET /api/leaderboard
  * Full leaderboard
@@ -8,16 +16,12 @@ import User from "../models/User.js";
 export const getLeaderboard = async (req, res) => {
   try {
     const leaderboard = await Leaderboard.find()
-      .sort({ rankPosition: 1 })
+      .sort({ rankPosition: 1, score: -1, lastUpdated: 1 })
       .populate("userId", "username totalWins totalBattles");
-    console.log("leaderboard", leaderboard);
-    const result = leaderboard.map((entry) => ({
-      rankPosition: entry.rankPosition,
-      username: entry.userId.username,
-      score: entry.score,
-      totalWins: entry.userId.totalWins,
-      totalBattles: entry.userId.totalBattles,
-    }));
+
+    const result = leaderboard.map((entry, index) =>
+      formatLeaderboardEntry(entry, index + 1),
+    );
 
     res.json(result);
   } catch (error) {
@@ -33,17 +37,13 @@ export const getTopLeaderboard = async (req, res) => {
     const limit = parseInt(req.params.limit) || 10;
 
     const leaderboard = await Leaderboard.find()
-      .sort({ rankPosition: 1 })
+      .sort({ rankPosition: 1, score: -1, lastUpdated: 1 })
       .limit(limit)
       .populate("userId", "username totalWins totalBattles");
 
-    const result = leaderboard.map((entry) => ({
-      rankPosition: entry.rankPosition,
-      username: entry.userId.username,
-      score: entry.score,
-      totalWins: entry.userId.totalWins,
-      totalBattles: entry.userId.totalBattles,
-    }));
+    const result = leaderboard.map((entry, index) =>
+      formatLeaderboardEntry(entry, index + 1),
+    );
 
     res.json(result);
   } catch (error) {
@@ -60,11 +60,20 @@ export const getMyRank = async (req, res) => {
 
     const entry = await Leaderboard.findOne({ userId });
 
-    if (!entry) {
-      return res.status(404).json({ message: "Leaderboard entry not found" });
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
 
-    const user = await User.findById(userId);
+    if (!entry) {
+      return res.json({
+        rankPosition: null,
+        score: 0,
+        totalWins: user.totalWins || 0,
+        totalBattles: user.totalBattles || 0,
+      });
+    }
 
     res.json({
       rankPosition: entry.rankPosition,

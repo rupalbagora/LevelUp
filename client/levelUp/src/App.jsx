@@ -18,6 +18,7 @@ import NotFound from "./pages/NotFound";
 import BattlePage from "./pages/BattlePage";
 import OpponentMatchIntro from "./components/battle/MatchIntro/OpponentMatchIntro";
 import ProfilePage from "./components/layout/ProfilePage";
+import LeaderboardPage from "./pages/LeaderboardPage";
 
 function App() {
   const { isAuthenticated, isLoading } = useSelector((state) => state.auth);
@@ -59,6 +60,15 @@ function App() {
             element={
               <CheckAuth isAuthenticated={isAuthenticated}>
                 <ProfilePage />
+              </CheckAuth>
+            }
+          />
+
+          <Route
+            path="/leaderboard"
+            element={
+              <CheckAuth isAuthenticated={isAuthenticated}>
+                <LeaderboardPage />
               </CheckAuth>
             }
           />

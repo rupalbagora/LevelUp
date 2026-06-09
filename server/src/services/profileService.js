@@ -1,6 +1,7 @@
 import Battle from "../models/Battle.js";
 import Leaderboard from "../models/Leaderboard.js";
 import User from "../models/User.js";
+import { buildActivityCalendar } from "./activityService.js";
 
 const formatRelativeTime = (date) => {
   if (!date) return "";
@@ -204,6 +205,8 @@ export const buildUserProfilePayload = async (userId) => {
   const globalRank = leaderboardEntry?.rankPosition ?? null;
 
   const streak = await calculateWinStreak(userId);
+  const activityCalendar = buildActivityCalendar(user);
+  const dailyStreak = user.currentDailyStreak || 0;
   const winRate =
     user.totalBattles > 0
       ? Math.round((user.totalWins / user.totalBattles) * 100)
@@ -246,8 +249,8 @@ export const buildUserProfilePayload = async (userId) => {
       value: `${winRate}%`,
     },
     {
-      label: "Current Streak",
-      value: String(streak),
+      label: "Daily Streak",
+      value: String(dailyStreak),
     },
   ];
 
@@ -270,7 +273,11 @@ export const buildUserProfilePayload = async (userId) => {
     statsSummary,
     globalRank,
     winRate,
-    currentStreak: streak,
+    currentWinStreak: streak,
+    dailyStreak,
+    longestDailyStreak: user.longestDailyStreak || 0,
+    activityCalendar,
+    currentStreak: dailyStreak,
     badges: buildBadges(user, streak, globalRank),
     activity: recentActivity,
     topicMastery: buildTopicMastery(completedBattles, userId),

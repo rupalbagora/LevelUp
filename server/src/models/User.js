@@ -62,7 +62,24 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "🦁",
     },
-    
+    lastActiveDate: {
+      type: String,
+      default: null,
+    },
+    currentDailyStreak: {
+      type: Number,
+      default: 0,
+    },
+    longestDailyStreak: {
+      type: Number,
+      default: 0,
+    },
+    activityLog: [
+      {
+        date: { type: String, required: true },
+        count: { type: Number, default: 1 },
+      },
+    ],
     resetPasswordToken: {
       type: String,
       default: null,

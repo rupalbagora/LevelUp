@@ -10,7 +10,7 @@ const iconMap = {
   'Global Rank': <Trophy className="text-[#2563eb] dark:text-cyan-400 w-5 h-5" />,
   'Total Battles': <Target className="text-green-600 dark:text-green-400 w-5 h-5" />,
   'Win Rate': <Award className="text-orange-500 w-5 h-5" />,
-  'Current Streak': <Flame className="text-green-500 dark:text-cyan-400 w-5 h-5" />,
+  'Daily Streak': <Flame className="text-green-500 dark:text-cyan-400 w-5 h-5" />,
 };
 
 const insightIconMap = {

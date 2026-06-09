@@ -74,7 +74,9 @@ const run = async () => {
   res = await request("/api/user/profile");
   assert(res.status === 200 && res.body.success, "Profile GET failed");
   assert(res.body.user?.email === testEmail, "Profile user email mismatch");
-  console.log("✓ GET /api/user/profile");
+  assert(res.body.activityCalendar?.weeks?.length === 5, "Activity calendar missing");
+  assert(typeof res.body.dailyStreak === "number", "Daily streak missing");
+  console.log("✓ GET /api/user/profile (daily streak + calendar)");
 
   // 5. Profile UPDATE
   res = await request("/api/user/update", {
@@ -123,6 +125,16 @@ const run = async () => {
   });
   assert(res.status === 400, "Google auth should reject missing credential");
   console.log("✓ POST /api/auth/google validation");
+
+  // 10. Leaderboard me (unranked user ok)
+  res = await request("/api/leaderboard/me");
+  assert(res.status === 200, "Leaderboard me should return 200 for new user");
+  console.log("✓ GET /api/leaderboard/me (unranked)");
+
+  // 11. Leaderboard list
+  res = await request("/api/leaderboard");
+  assert(res.status === 200 && Array.isArray(res.body), "Leaderboard list failed");
+  console.log("✓ GET /api/leaderboard");
 
   console.log("\n=== All tests passed ===");
 };
