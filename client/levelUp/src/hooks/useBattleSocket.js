@@ -79,7 +79,12 @@ let mounted = true;
                   ? [question.constraints]
                   : [],
               },
-             
+              players: question.players ? {
+                current: question.players.creator.id === userId ? question.players.creator : question.players.opponent,
+                opponent: question.players.creator.id === userId ? question.players.opponent : question.players.creator,
+              } : null,
+              startTime: question.startTime,
+              endTime: question.endTime,
             };
           });
         })

@@ -47,26 +47,6 @@ export const joinBattle = async (req, res) => {
     const randomIndex = Math.floor(Math.random() * questions.length);
     const selectedQuestion = questions[randomIndex];
 
-    // const BATTLE_DURATION = 30 * 60 * 1000; // 30 minutes
-    // battle.startTime = new Date();
-    // battle.endTime = new Date(Date.now() + BATTLE_DURATION);
-
-    //     // Assign question + opponent
-    //     battle.opponentId = req.user;
-    //     battle.questionId = selectedQuestion._id;
-    //     battle.status = "ongoing";
-    //     // battle.startTime = new Date();
-
-    //     await battle.save();
-
-    //     res.json({ message: "Joined battle successfully" ,
-    //       questionId : selectedQuestion._id,
-    //     });
-    //   } catch (error) {
-    //     res.status(500).json({ message: "Failed to join battle" , error});
-
-    //   }
-    // };
     // 4️⃣ Atomic update (race condition safe)
     const BATTLE_DURATION = 30 * 60 * 1000;
 
@@ -120,8 +100,10 @@ export const joinBattle = async (req, res) => {
 export const getBattleQuestion = async (req, res) => {
   try {
     const { battleId } = req.params;
-    console.log(battleId);
-    const battle = await Battle.findById(battleId).populate("questionId");
+    const battle = await Battle.findById(battleId)
+      .populate("questionId")
+      .populate("creatorId", "_id username rank totalWins totalBattles")
+      .populate("opponentId", "_id username rank totalWins totalBattles");
 
     if (!battle || !battle.questionId) {
       return res.status(404).json({ message: "Question not assigned yet" });
@@ -129,16 +111,28 @@ export const getBattleQuestion = async (req, res) => {
 
     // Only participants allowed
     if (
-      // battle.creatorId.toString() !== req.user &&
-      // battle.opponentId.toString() !== req.user
-      !battle.creatorId.equals(req.user) &&
-      !(battle.opponentId && battle.opponentId.equals(req.user))
+      !battle.creatorId._id.equals(req.user) &&
+      !(battle.opponentId && battle.opponentId._id.equals(req.user))
     ) {
       return res.status(403).json({ message: "Access denied" });
     }
    
 const question = battle.questionId;
 console.log("🔥 QUESTION FROM DB:", question)
+
+function formatUser(user) {
+  if (!user) return null;
+  const winRate = user.totalBattles > 0 ? Math.round((user.totalWins / user.totalBattles) * 100) : 0;
+  return {
+    id: user._id,
+    username: user.username,
+    rank: user.rank,
+    totalWins: user.totalWins,
+    totalBattles: user.totalBattles,
+    winRate,
+  };
+}
+
 res.json({
   _id: question._id,
   title: question.title,
@@ -155,6 +149,12 @@ res.json({
   testCases: {
     public: question.testCases.public,
   },
+  players: {
+    creator: formatUser(battle.creatorId),
+    opponent: formatUser(battle.opponentId),
+  },
+  startTime: battle.startTime,
+  endTime: battle.endTime,
 });
 
   } catch (error) {
