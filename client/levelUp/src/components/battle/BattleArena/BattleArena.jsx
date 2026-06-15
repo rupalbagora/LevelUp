@@ -387,7 +387,7 @@ async function handleSubmit() {
           className={`
             ${maximized && maximized !== "left" ? "hidden" : "flex flex-col"}
             w-full md:w-[var(--panel-width)]
-            min-h-[45vh] md:min-h-0
+            min-h-[350px] md:min-h-0
             border-b md:border-b-0 md:border-r border-slate-200 dark:border-[#3a3a3a]
             overflow-hidden
           `}
@@ -417,7 +417,7 @@ async function handleSubmit() {
           className={`
             ${maximized && maximized !== "center" ? "hidden" : "flex flex-col"}
             w-full md:w-[var(--panel-width)]
-            h-[75vh] md:h-auto
+            min-h-[500px] md:h-auto
             border-b md:border-b-0 md:border-r border-slate-200 dark:border-[#3a3a3a]
             overflow-hidden
           `}
@@ -478,7 +478,7 @@ async function handleSubmit() {
           className={`
             ${maximized && maximized !== "right" ? "hidden" : "flex flex-col"}
             w-full md:w-[var(--panel-width)]
-            min-h-[45vh] md:min-h-0
+            min-h-[350px] md:min-h-0
             overflow-hidden
           `}
         >
